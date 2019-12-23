@@ -15,7 +15,7 @@ export class CanvasCoordinates {
      * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down').
      */
 
-    constructor(canvas, options) {
+    constructor(canvas, options = {}) {
 
         this.canvas = canvas;
 

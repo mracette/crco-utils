@@ -271,29 +271,39 @@ class Spread {
 class CanvasCoordinates {
   /**
    * Creates a canvas coordinate system.
-   * @param {object} canvas The canvas to map the coordinate system to
    * @param {object} [options] Optional properties of the system
    * @param {object} [options.nxRange = [-1, 1]] An array that represents the bounds of the normalized x axis
    * @param {object} [options.nyRange = [-1, 1]] An array that represents the bounds of the normalized y axis
+   * @param {object} [options.canvas] The canvas to map the coordinate system to
+   * @param {number} [options.baseWidth] If specified, coordinates will map to this width instead of the canvas width (px)
+   * @param {number} [options.baseHeight] If specified, coordinates will map to this height instead of the canvas height (px)
    * @param {boolean} [options.clamp = false] Whether or not to clamp coordinate that are outside of the bounds
    * @param {number} [options.padding = 0] Defines padding as a proportion of the canvas width
    * @param {number} [options.paddingX] Defines X padding as a proportion of the canvas width (if defined, overrides options.padding)
    * @param {number} [options.paddingY] Defines Y padding as a proportion of the canvas height (if defined, overrides options.padding)
    * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down').
    */
-  constructor(canvas, options = {}) {
-    this.canvas = canvas;
+  constructor(options = {}) {
+    if (typeof options.baseHeight === 'undefined' && typeof options.canvas === 'undefined' || typeof options.baseWidth === 'undefined' && typeof options.canvas === 'undefined') {
+      throw new Error('Invalid options. A canvas element must be supplied if baseHeight or baseWidth are not defined.');
+    }
+
     const defaults = {
       nxRange: [-1, 1],
       nyRange: [-1, 1],
       padding: 0,
-      paddingX: undefined,
-      paddingY: undefined,
+      paddingX: null,
+      paddingY: null,
+      canvas: null,
+      baseHeight: null,
+      baseWidth: null,
       orientationY: 'down'
     };
     Object.assign(this, { ...defaults,
       ...options
     });
+    this.width = this.baseWidth || this.canvas.width;
+    this.height = this.baseHeight || this.canvas.height;
   }
   /**
    * Maps a normalized x-value to a canvas x-value
@@ -307,12 +317,12 @@ class CanvasCoordinates {
     this.clamp && (n = clamp(n, this.nxRange[0], this.nxRange[1]));
 
     if (typeof options.padding === 'number') {
-      padding = options.padding * this.canvas.width;
+      padding = options.padding * this.width;
     } else {
-      padding = (this.paddingX || this.padding) * this.canvas.width;
+      padding = (this.paddingX || this.padding) * this.width;
     }
 
-    return padding + (n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0]) * (this.canvas.width - 2 * padding);
+    return padding + (n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0]) * (this.width - 2 * padding);
   }
   /**
    * Maps a canvas x-value to a normalized x-value
@@ -325,12 +335,12 @@ class CanvasCoordinates {
     let padding;
 
     if (typeof options.padding === 'number') {
-      padding = options.padding * this.canvas.width;
+      padding = options.padding * this.width;
     } else {
-      padding = (this.paddingX || this.padding) * this.canvas.width;
+      padding = (this.paddingX || this.padding) * this.width;
     }
 
-    return (x - padding) / (this.canvas.width - padding * 2);
+    return (x - padding) / (this.width - padding * 2);
   }
   /**
    * Maps a normalized y-value to a canvas y-value
@@ -345,17 +355,17 @@ class CanvasCoordinates {
     this.clamp && (n = clamp(n, this.nyRange[0], this.nyRange[1]));
 
     if (typeof options.paddingY === 'number') {
-      padding = options.paddingY * this.canvas.height;
+      padding = options.paddingY * this.height;
     } else if (typeof options.padding === 'number') {
-      padding = options.padding * this.canvas.width;
+      padding = options.padding * this.width;
     } else {
-      padding = typeof this.paddingY === 'number' ? this.paddingY * this.canvas.height : this.padding * this.canvas.width;
+      padding = typeof this.paddingY === 'number' ? this.paddingY * this.height : this.padding * this.width;
     }
 
     if (this.orientationY === 'down') {
-      return padding + (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.canvas.height - 2 * padding);
+      return padding + (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
     } else if (this.orientationY === 'up') {
-      return this.canvas.height - padding - (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.canvas.height - 2 * padding);
+      return this.height - padding - (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
     }
   }
   /**
@@ -369,17 +379,17 @@ class CanvasCoordinates {
     let padding;
 
     if (typeof options.paddingY === 'number') {
-      padding = options.paddingY * this.canvas.height;
+      padding = options.paddingY * this.height;
     } else if (typeof options.padding === 'number') {
-      padding = options.padding * this.canvas.width;
+      padding = options.padding * this.width;
     } else {
-      padding = typeof this.paddingY === 'number' ? this.paddingY * this.canvas.height : this.padding * this.canvas.width;
+      padding = typeof this.paddingY === 'number' ? this.paddingY * this.height : this.padding * this.width;
     }
 
     if (this.orientationY === 'down') {
-      return (y - padding) / (this.canvas.height - padding * 2);
+      return (y - padding) / (this.height - padding * 2);
     } else if (this.orientationY === 'up') {
-      return (this.canvas.height - y - padding) / (this.canvas.height - padding * 2);
+      return (this.height - y - padding) / (this.height - padding * 2);
     }
   }
 

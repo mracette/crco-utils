@@ -44,7 +44,10 @@ const draw = (name, params) => {
             break;
         }
         case 'canvasCoordinates': {
-            const coords = new crco.CanvasCoordinates(canvas, {
+            const coords = new crco.CanvasCoordinates({
+                canvas,
+                baseWidth: 1500,
+                baseHeight: 1500,
                 padding: params.padding,
                 orientationY: params.orientationY
             });

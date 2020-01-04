@@ -7,7 +7,7 @@ export const rotatePoint = (px, py, cx, cy, angle) => {
     }
 }
 
-export function equilateralTriangle(x, y, side, rotation) {
+export const equilateralTriangle = (x, y, side, rotation) => {
 
     const v = [];
     const h = side * Math.sqrt(3) / 2
@@ -20,7 +20,7 @@ export function equilateralTriangle(x, y, side, rotation) {
 
 }
 
-export function isocelesTriangle(x, y, sideOne, sideTwo, rotation) {
+export const isocelesTriangle = (x, y, sideOne, sideTwo, rotation) => {
 
     const v = [];
     const h = Math.sqrt(sideTwo * sideTwo / 4 - sideOne * sideOne);
@@ -33,7 +33,7 @@ export function isocelesTriangle(x, y, sideOne, sideTwo, rotation) {
 
 }
 
-export function star(x, y, scale, rotation) {
+export const star = (x, y, scale, rotation) => {
 
     const v = [];
 
@@ -44,4 +44,21 @@ export function star(x, y, scale, rotation) {
     v.push(rotatePoint(x + Math.cos(TAU * 2 / 5) * scale, y + Math.sin(TAU * 2 / 5) * scale, x, y, rotation));
     v.push(rotatePoint(x + Math.cos(TAU * 0 / 5) * scale, y + Math.sin(TAU * 0 / 5) * scale, x, y, rotation));
 
+}
+
+export const regularPolygon = (nSides, size = 1, cx = 0, cy = 0, closedLoop = true, rotate = false, twoDim = false) => {
+    const nPoints = closedLoop ? (nSides + 1) : nSides;
+    const nCoords = twoDim ? 2 : 3;
+    const points = new Float32Array(nPoints * nCoords);
+    for (let i = 0; i < nPoints; i++) {
+        if (twoDim) {
+            points[i * nCoords] = cx + size * Math.cos(i * 2 * Math.PI / nSides);
+            points[i * nCoords + 1] = cy + size * Math.sin(i * 2 * Math.PI / nSides);
+        } else {
+            points[i * nCoords] = cx + size * Math.cos(i * 2 * Math.PI / nSides);
+            points[i * nCoords + 1] = rotate ? 0 : cy + size * Math.sin(i * 2 * Math.PI / nSides);
+            points[i * nCoords + 2] = rotate ? cy + size * Math.sin(i * 2 * Math.PI / nSides) : 0;
+        }
+    }
+    return points;
 }

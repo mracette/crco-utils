@@ -54,7 +54,7 @@ export class Spread {
                 switch (anchor) {
                     case 'spacing': value = distribution(bounds[0] + units * (i + 0.5), { d: dim, i }); break;
                     case 'endpoints': value = distribution(bounds[0] + units * i, { d: dim, i }); break;
-                    default: throw new Error('Anchor type not valid. Choose from (spacing, endpoints).') break;
+                    default: throw new Error('Anchor type not valid. Choose from (spacing, endpoints).'); break;
                 }
 
                 clone.push(value);

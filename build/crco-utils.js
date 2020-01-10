@@ -149,8 +149,7 @@ class Spread {
       dimensions: 1,
       distribution: n => n
     };
-    Object.assign(this, {
-      ...defaults,
+    Object.assign(this, { ...defaults,
       ...options
     });
     this.flatData = [];
@@ -184,7 +183,9 @@ class Spread {
               i
             });
             break;
-          default: throw new Error('Anchor type not valid. Choose from (spacing, endpoints).') break;
+
+          default:
+            throw new Error('Anchor type not valid. Choose from (spacing, endpoints).');
         }
 
         clone.push(value);
@@ -319,8 +320,7 @@ class CanvasCoordinates {
       baseWidth: null,
       orientationY: 'down'
     };
-    Object.assign(this, {
-      ...defaults,
+    Object.assign(this, { ...defaults,
       ...options
     });
     this.width = this.baseWidth || this.canvas.width;

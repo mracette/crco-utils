@@ -33,18 +33,6 @@ export const lerp = (n0, n1, t) => {
     return n0 * (1 - t) + n1 * t;
 }
 
-export const ndMapping = (functionArray) => {
-    return () => {
-        for (let i = 0; i < arguments.length; i++) {
-            if (typeof functionArray[i] !== 'object') {
-                console.error(`Missing a valid function for argument at index ${i}`)
-            } else {
-                return functionArray[i](arguments[i]);
-            }
-        }
-    }
-}
-
 export const cartToPolar = (x, y) => {
     return {
         r: Math.sqrt(x * x + y * y),

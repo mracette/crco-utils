@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 export * from './utils/constants';
 export * from './utils/math';
 export * from './utils/canvas';

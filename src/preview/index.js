@@ -73,6 +73,7 @@ const draw = (name, params) => {
             context.arc(coords.nx(1), coords.ny(1), 50, 0, crco.TAU);
             context.fill();
         }
+        default: throw new Error('Invalid drawing type');
     }
 
 

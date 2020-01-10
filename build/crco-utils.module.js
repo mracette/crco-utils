@@ -84,24 +84,42 @@ const rotatePoint = (px, py, cx, cy, angle) => {
     y: Math.sin(angle) * (px - cx) + Math.cos(angle) * (py - cy) + cy
   };
 };
-function equilateralTriangle(x, y, side, rotation) {
+const equilateralTriangle = (x, y, side, rotation) => {
   const v = [];
   const h = side * Math.sqrt(3) / 2;
   v.push(rotatePoint(x, y - 2 * h / 3, x, y, rotation));
   v.push(rotatePoint(x + side / 2, y * (h / 3), x, y, rotation));
   v.push(rotatePoint(x - side / 2, y * (h / 3), x, y, rotation));
   return v;
-}
-function isocelesTriangle(x, y, sideOne, sideTwo, rotation) {
+};
+const isocelesTriangle = (x, y, sideOne, sideTwo, rotation) => {
   const v = [];
   const h = Math.sqrt(sideTwo * sideTwo / 4 - sideOne * sideOne);
   v.push(rotatePoint(x, y - 2 * h / 3, x, y, rotation));
   v.push(rotatePoint(x + sideTwo / 2, y * (h / 3), x, y, rotation));
   v.push(rotatePoint(x - sideTwo / 2, y * (h / 3), x, y, rotation));
   return v;
-}
-function star(x, y, scale, rotation) {
-}
+};
+const star = (x, y, scale, rotation) => {
+};
+const regularPolygon = (nSides, size = 1, cx = 0, cy = 0, closedLoop = true, rotate = false, twoDim = false) => {
+  const nPoints = closedLoop ? nSides + 1 : nSides;
+  const nCoords = twoDim ? 2 : 3;
+  const points = new Float32Array(nPoints * nCoords);
+
+  for (let i = 0; i < nPoints; i++) {
+    if (twoDim) {
+      points[i * nCoords] = cx + size * Math.cos(i * 2 * Math.PI / nSides);
+      points[i * nCoords + 1] = cy + size * Math.sin(i * 2 * Math.PI / nSides);
+    } else {
+      points[i * nCoords] = cx + size * Math.cos(i * 2 * Math.PI / nSides);
+      points[i * nCoords + 1] = rotate ? 0 : cy + size * Math.sin(i * 2 * Math.PI / nSides);
+      points[i * nCoords + 2] = rotate ? cy + size * Math.sin(i * 2 * Math.PI / nSides) : 0;
+    }
+  }
+
+  return points;
+};
 
 class Spread {
   /**
@@ -405,4 +423,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, drawLine2D, equilateralTriangle, isocelesTriangle, lerp, ndMapping, polarToCart, rotatePoint, star };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, drawLine2D, equilateralTriangle, isocelesTriangle, lerp, ndMapping, polarToCart, regularPolygon, rotatePoint, star };

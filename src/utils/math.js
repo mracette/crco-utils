@@ -46,3 +46,37 @@ export const polarToCart = (r, theta) => {
         y: r * Math.sin(theta)
     }
 }
+
+export const solveExpEquation = (x0, y0, x1, y1) => {
+
+    // solve the system of equations ...
+    // a*b^(x0) = y0
+    // a*b^(x1) = y1
+
+    const b = Math.pow((y1 / y0), (1 / (x1 - x0)));
+    const a = y0 / Math.pow(b, x0);
+    return { a, b }; // to be used y = ab^x
+}
+
+
+export const linToLog = (w) => {
+    /* 
+    *
+    * linear scale: [1, w] 
+    *    log scale: [1, w] 
+    * 
+    * (x0, y0): (1, 1)
+    * (x1, y1): (w, w)
+    * 
+    * b = log(y0/y1)/(x0-x1)
+    * b = log(1/w)/(1-w)
+    * 
+    * a = y1/exp(b*x1)
+    * a = w/exp(b*w)
+    * 
+    */
+    let b = Math.log(1 / w) / (1 - w);
+    let a = w / Math.exp(b * w);
+
+    return { a, b };
+}

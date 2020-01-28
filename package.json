@@ -2,7 +2,14 @@
   "name": "crco-utils",
   "version": "0.0.1",
   "description": "creative coding utilities",
-  "main": "index.js",
+  "main": "build/crco-utils.js",
+  "module": "build/crco-utils.module.js",
+  "unpkg": "build/crco-utils.min.js",
+  "files": [
+    "build/crco-utils.js",
+    "build/crco-utils.min.js",
+    "build/crco-utils.module.js"
+  ],
   "directories": {
     "test": "test"
   },

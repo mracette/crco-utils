@@ -36,17 +36,6 @@ const clamp = (n, min, max) => {
 const lerp = (n0, n1, t) => {
   return n0 * (1 - t) + n1 * t;
 };
-const ndMapping = functionArray => {
-  return () => {
-    for (let i = 0; i < arguments.length; i++) {
-      if (typeof functionArray[i] !== 'object') {
-        console.error(`Missing a valid function for argument at index ${i}`);
-      } else {
-        return functionArray[i](arguments[i]);
-      }
-    }
-  };
-};
 const cartToPolar = (x, y) => {
   return {
     r: Math.sqrt(x * x + y * y),
@@ -441,7 +430,6 @@ exports.drawLine2D = drawLine2D;
 exports.equilateralTriangle = equilateralTriangle;
 exports.isocelesTriangle = isocelesTriangle;
 exports.lerp = lerp;
-exports.ndMapping = ndMapping;
 exports.polarToCart = polarToCart;
 exports.regularPolygon = regularPolygon;
 exports.rotatePoint = rotatePoint;

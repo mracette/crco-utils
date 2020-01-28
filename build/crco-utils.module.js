@@ -32,17 +32,6 @@ const clamp = (n, min, max) => {
 const lerp = (n0, n1, t) => {
   return n0 * (1 - t) + n1 * t;
 };
-const ndMapping = functionArray => {
-  return () => {
-    for (let i = 0; i < arguments.length; i++) {
-      if (typeof functionArray[i] !== 'object') {
-        console.error(`Missing a valid function for argument at index ${i}`);
-      } else {
-        return functionArray[i](arguments[i]);
-      }
-    }
-  };
-};
 const cartToPolar = (x, y) => {
   return {
     r: Math.sqrt(x * x + y * y),
@@ -145,7 +134,8 @@ class Spread {
       dimensions: 1,
       distribution: n => n
     };
-    Object.assign(this, { ...defaults,
+    Object.assign(this, {
+      ...defaults,
       ...options
     });
     this.flatData = [];
@@ -316,7 +306,8 @@ class CanvasCoordinates {
       baseWidth: null,
       orientationY: 'down'
     };
-    Object.assign(this, { ...defaults,
+    Object.assign(this, {
+      ...defaults,
       ...options
     });
     this.width = this.baseWidth || this.canvas.width;
@@ -426,4 +417,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, drawLine2D, equilateralTriangle, isocelesTriangle, lerp, ndMapping, polarToCart, regularPolygon, rotatePoint, star };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, drawLine2D, equilateralTriangle, isocelesTriangle, lerp, polarToCart, regularPolygon, rotatePoint, star };

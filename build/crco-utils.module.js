@@ -44,6 +44,40 @@ const polarToCart = (r, theta) => {
     y: r * Math.sin(theta)
   };
 };
+const solveExpEquation = (x0, y0, x1, y1) => {
+  // solve the system of equations ...
+  // a*b^(x0) = y0
+  // a*b^(x1) = y1
+  const b = Math.pow(y1 / y0, 1 / (x1 - x0));
+  const a = y0 / Math.pow(b, x0);
+  return {
+    a,
+    b
+  }; // to be used y = ab^x
+};
+const linToLog = w => {
+  /* 
+  *
+  * linear scale: [1, w] 
+  *    log scale: [1, w] 
+  * 
+  * (x0, y0): (1, 1)
+  * (x1, y1): (w, w)
+  * 
+  * b = log(y0/y1)/(x0-x1)
+  * b = log(1/w)/(1-w)
+  * 
+  * a = y1/exp(b*x1)
+  * a = w/exp(b*w)
+  * 
+  */
+  let b = Math.log(1 / w) / (1 - w);
+  let a = w / Math.exp(b * w);
+  return {
+    a,
+    b
+  };
+};
 
 /**
  * @param {object} context The canvas context to draw with
@@ -110,6 +144,40 @@ const regularPolygon = (nSides, size = 1, cx = 0, cy = 0, closedLoop = true, rot
   return points;
 };
 
+const createAudioPlayer = (audioCtx, audioFilePath) => {
+  return new Promise((resolve, reject) => {
+    loadArrayBuffer(audioFilePath).then(arrayBuffer => {
+      audioCtx.decodeAudioData(arrayBuffer, audioBuffer => {
+        const audioPlayer = audioCtx.createBufferSource();
+        audioPlayer.buffer = audioBuffer;
+        resolve(audioPlayer);
+      }, err => {
+        console.error(err);
+        reject(err);
+      });
+    }).catch(err => {
+      console.error(err);
+      reject(err);
+    });
+  });
+};
+const loadArrayBuffer = audioFilePath => {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.responseType = "arraybuffer";
+    request.addEventListener('load', () => {
+      if (request.status === 200) {
+        resolve(request.response);
+      }
+    });
+    request.addEventListener('error', err => {
+      reject(err);
+    });
+    request.open('GET', audioFilePath, true);
+    request.send();
+  });
+};
+
 class Spread {
   /**
    * Creates a canvas coordinate system.
@@ -134,8 +202,7 @@ class Spread {
       dimensions: 1,
       distribution: n => n
     };
-    Object.assign(this, {
-      ...defaults,
+    Object.assign(this, { ...defaults,
       ...options
     });
     this.flatData = [];
@@ -306,8 +373,7 @@ class CanvasCoordinates {
       baseWidth: null,
       orientationY: 'down'
     };
-    Object.assign(this, {
-      ...defaults,
+    Object.assign(this, { ...defaults,
       ...options
     });
     this.width = this.baseWidth || this.canvas.width;
@@ -417,4 +483,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, drawLine2D, equilateralTriangle, isocelesTriangle, lerp, polarToCart, regularPolygon, rotatePoint, star };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, createAudioPlayer, drawLine2D, equilateralTriangle, isocelesTriangle, lerp, linToLog, loadArrayBuffer, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star };

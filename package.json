@@ -25,7 +25,10 @@
   },
   "scripts": {
     "build": "rollup -c --environment BUILD:production",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "npm-patch": "npm version patch; npm publish",
+    "npm-minor": "npm version minor; npm publish",
+    "npm-major": "npm version major; npm publish"
   },
   "author": "Mark Racette",
   "license": "ISC"

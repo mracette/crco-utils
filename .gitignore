@@ -1,2 +1,5 @@
+tests.html
+test_assets/
+
 .DS_Store
 node_modules/

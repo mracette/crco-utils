@@ -1,26 +1,60 @@
-export const createAudioPlayer = (audioCtx, audioFilePath) => {
+export const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
+
+    const offlineRendering = options.offlineRendering || false;
+    const logLevel = options.logLevel || 'none';
 
     return new Promise((resolve, reject) => {
 
         loadArrayBuffer(audioFilePath).then((arrayBuffer) => {
 
-            audioCtx.decodeAudioData(arrayBuffer, (audioBuffer) => {
+            audioCtx.decodeAudioData(arrayBuffer, function (buffer) {
 
-                const audioPlayer = audioCtx.createBufferSource();
-                audioPlayer.buffer = audioBuffer;
+                if (offlineRendering) {
 
-                resolve(audioPlayer);
+                    const offline = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
+                        2,
+                        options.renderLength || buffer.length,
+                        buffer.sampleRate
+                    );
+
+                    const offlineBuffer = offline.createBufferSource();
+
+                    offlineBuffer.buffer = buffer;
+                    offlineBuffer.connect(offline.destination);
+                    offlineBuffer.start();
+                    offline.startRendering().then((renderedBuffer) => {
+
+                        logLevel === 'debug' && console.log(renderedBuffer);
+                        const audioPlayer = audioCtx.createBufferSource();
+                        audioPlayer.buffer = renderedBuffer;
+
+                        resolve(audioPlayer);
+
+                    }).catch((err) => {
+
+                        logLevel === 'debug' && console.error(err);
+                        reject(err);
+
+                    })
+
+                } else {
+
+                    const audioPlayer = audioCtx.createBufferSource();
+                    audioPlayer.buffer = buffer;
+                    resolve(audioPlayer);
+
+                }
 
             }, (err) => {
 
-                console.error(err);
+                logLevel === 'debug' && console.error(err);
                 reject(err);
 
             })
 
         }).catch((err) => {
 
-            console.error(err);
+            logLevel === 'debug' && console.error(err);
             reject(err);
 
         })

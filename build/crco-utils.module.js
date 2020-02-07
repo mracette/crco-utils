@@ -144,19 +144,38 @@ const regularPolygon = (nSides, size = 1, cx = 0, cy = 0, closedLoop = true, rot
   return points;
 };
 
-const createAudioPlayer = (audioCtx, audioFilePath) => {
+const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
+  const offlineRendering = options.offlineRendering || false;
+  const logLevel = options.logLevel || 'none';
   return new Promise((resolve, reject) => {
     loadArrayBuffer(audioFilePath).then(arrayBuffer => {
-      audioCtx.decodeAudioData(arrayBuffer, audioBuffer => {
-        const audioPlayer = audioCtx.createBufferSource();
-        audioPlayer.buffer = audioBuffer;
-        resolve(audioPlayer);
+      audioCtx.decodeAudioData(arrayBuffer, function (buffer) {
+        if (offlineRendering) {
+          const offline = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, options.renderLength || buffer.length, buffer.sampleRate);
+          const offlineBuffer = offline.createBufferSource();
+          offlineBuffer.buffer = buffer;
+          offlineBuffer.connect(offline.destination);
+          offlineBuffer.start();
+          offline.startRendering().then(renderedBuffer => {
+            logLevel === 'debug' && console.log(renderedBuffer);
+            const audioPlayer = audioCtx.createBufferSource();
+            audioPlayer.buffer = renderedBuffer;
+            resolve(audioPlayer);
+          }).catch(err => {
+            logLevel === 'debug' && console.error(err);
+            reject(err);
+          });
+        } else {
+          const audioPlayer = audioCtx.createBufferSource();
+          audioPlayer.buffer = buffer;
+          resolve(audioPlayer);
+        }
       }, err => {
-        console.error(err);
+        logLevel === 'debug' && console.error(err);
         reject(err);
       });
     }).catch(err => {
-      console.error(err);
+      logLevel === 'debug' && console.error(err);
       reject(err);
     });
   });
@@ -348,13 +367,15 @@ class CanvasCoordinates {
    * @param {object} [options] Optional properties of the system
    * @param {object} [options.nxRange = [-1, 1]] An array that represents the bounds of the normalized x axis
    * @param {object} [options.nyRange = [-1, 1]] An array that represents the bounds of the normalized y axis
+   * @param {number} [options.padding = 0] Defines padding as a proportion of the canvas width
+   * @param {number} [options.paddingX = 0] Defines X padding as a proportion of the canvas width (if defined, overrides options.padding)
+   * @param {number} [options.paddingY = 0] Defines Y padding as a proportion of the canvas height (if defined, overrides options.padding)
+   * @param {number} [options.xOffset = 0] Defines the canvas coords of nx(0)
+   * @param {number} [options.yOffset = 0] Defines the canvas coords of ny(0)
    * @param {object} [options.canvas] The canvas to map the coordinate system to
    * @param {number} [options.baseWidth] If specified, coordinates will map to this width instead of the canvas width (px)
    * @param {number} [options.baseHeight] If specified, coordinates will map to this height instead of the canvas height (px)
    * @param {boolean} [options.clamp = false] Whether or not to clamp coordinate that are outside of the bounds
-   * @param {number} [options.padding = 0] Defines padding as a proportion of the canvas width
-   * @param {number} [options.paddingX] Defines X padding as a proportion of the canvas width (if defined, overrides options.padding)
-   * @param {number} [options.paddingY] Defines Y padding as a proportion of the canvas height (if defined, overrides options.padding)
    * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down').
    */
   constructor(options = {}) {
@@ -366,9 +387,12 @@ class CanvasCoordinates {
       nxRange: [-1, 1],
       nyRange: [-1, 1],
       padding: 0,
-      paddingX: null,
-      paddingY: null,
+      paddingX: 0,
+      paddingY: 0,
+      xOffset: 0,
+      yOffset: 0,
       canvas: null,
+      clamp: false,
       baseHeight: null,
       baseWidth: null,
       orientationY: 'down'
@@ -396,7 +420,7 @@ class CanvasCoordinates {
       padding = (this.paddingX || this.padding) * this.width;
     }
 
-    return padding + (n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0]) * (this.width - 2 * padding);
+    return padding + this.xOffset + (n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0]) * (this.width - 2 * padding);
   }
   /**
    * Maps a canvas x-value to a normalized x-value
@@ -414,7 +438,7 @@ class CanvasCoordinates {
       padding = (this.paddingX || this.padding) * this.width;
     }
 
-    return (x - padding) / (this.width - padding * 2);
+    return (x - padding - this.xOffset) / (this.width - padding * 2);
   }
   /**
    * Maps a normalized y-value to a canvas y-value
@@ -437,9 +461,9 @@ class CanvasCoordinates {
     }
 
     if (this.orientationY === 'down') {
-      return padding + (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
+      return padding + this.yOffset + (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
     } else if (this.orientationY === 'up') {
-      return this.height - padding - (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
+      return this.height - padding - this.yOffset - (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
     }
   }
   /**
@@ -461,9 +485,9 @@ class CanvasCoordinates {
     }
 
     if (this.orientationY === 'down') {
-      return (y - padding) / (this.height - padding * 2);
+      return (y - padding - this.yOffset) / (this.height - padding * 2);
     } else if (this.orientationY === 'up') {
-      return (this.height - y - padding) / (this.height - padding * 2);
+      return (this.height - y - padding - this.yOffset) / (this.height - padding * 2);
     }
   }
 

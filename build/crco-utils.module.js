@@ -152,19 +152,22 @@ const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
       audioCtx.decodeAudioData(arrayBuffer, function (buffer) {
         if (offlineRendering) {
           const offline = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, options.renderLength || buffer.length, buffer.sampleRate);
-          const offlineBuffer = offline.createBufferSource();
-          offlineBuffer.buffer = buffer;
-          offlineBuffer.connect(offline.destination);
-          offlineBuffer.start();
-          offline.startRendering().then(renderedBuffer => {
+
+          offline.oncomplete = event => {
+            const {
+              renderedBuffer
+            } = event;
             logLevel === 'debug' && console.log(renderedBuffer);
             const audioPlayer = audioCtx.createBufferSource();
             audioPlayer.buffer = renderedBuffer;
             resolve(audioPlayer);
-          }).catch(err => {
-            logLevel === 'debug' && console.error(err);
-            reject(err);
-          });
+          };
+
+          const offlineBuffer = offline.createBufferSource();
+          offlineBuffer.buffer = buffer;
+          offlineBuffer.connect(offline.destination);
+          offlineBuffer.start();
+          offline.startRendering();
         } else {
           const audioPlayer = audioCtx.createBufferSource();
           audioPlayer.buffer = buffer;

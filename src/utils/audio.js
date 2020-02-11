@@ -17,25 +17,20 @@ export const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
                         buffer.sampleRate
                     );
 
-                    const offlineBuffer = offline.createBufferSource();
-
-                    offlineBuffer.buffer = buffer;
-                    offlineBuffer.connect(offline.destination);
-                    offlineBuffer.start();
-                    offline.startRendering().then((renderedBuffer) => {
-
+                    offline.oncomplete = (event) => {
+                        const { renderedBuffer } = event;
                         logLevel === 'debug' && console.log(renderedBuffer);
                         const audioPlayer = audioCtx.createBufferSource();
                         audioPlayer.buffer = renderedBuffer;
-
                         resolve(audioPlayer);
+                    }
 
-                    }).catch((err) => {
+                    const offlineBuffer = offline.createBufferSource();
+                    offlineBuffer.buffer = buffer;
+                    offlineBuffer.connect(offline.destination);
+                    offlineBuffer.start();
 
-                        logLevel === 'debug' && console.error(err);
-                        reject(err);
-
-                    })
+                    offline.startRendering();
 
                 } else {
 

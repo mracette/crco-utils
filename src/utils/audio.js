@@ -1,5 +1,7 @@
 export const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
 
+    const fade = options.fade || false;
+    const fadeLength = options.fadeLength || null;
     const offlineRendering = options.offlineRendering || false;
     const logLevel = options.logLevel || 'none';
 
@@ -11,9 +13,12 @@ export const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
 
                 if (offlineRendering) {
 
+                    const bufferLength = options.renderLength || buffer.length;
+                    const bufferDuration = bufferLength / buffer.sampleRate;
+
                     const offline = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
                         2,
-                        options.renderLength || buffer.length,
+                        bufferLength,
                         buffer.sampleRate
                     );
 
@@ -25,11 +30,21 @@ export const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
                         resolve(audioPlayer);
                     }
 
+                    const gainNode = offline.createGain();
+
                     const offlineBuffer = offline.createBufferSource();
                     offlineBuffer.buffer = buffer;
-                    offlineBuffer.connect(offline.destination);
-                    offlineBuffer.start();
+                    offlineBuffer.connect(gainNode);
+                    gainNode.connect(offline.destination);
 
+                    if (fade) {
+                        gainNode.gain.setValueAtTime(.001, offline.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(1, offline.currentTime + fadeLength);
+                        gainNode.gain.setValueAtTime(1, offline.currentTime + bufferDuration - fadeLength);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
+                    }
+
+                    offlineBuffer.start();
                     offline.startRendering();
 
                 } else {

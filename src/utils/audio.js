@@ -2,6 +2,7 @@ export const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
 
     const fade = options.fade || false;
     const fadeLength = options.fadeLength || null;
+    const fadeType = options.fadeType || 'exponential';
     const offlineRendering = options.offlineRendering || false;
     const logLevel = options.logLevel || 'none';
 
@@ -38,10 +39,18 @@ export const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
                     gainNode.connect(offline.destination);
 
                     if (fade) {
+
                         gainNode.gain.setValueAtTime(.001, offline.currentTime);
-                        gainNode.gain.exponentialRampToValueAtTime(1, offline.currentTime + fadeLength);
                         gainNode.gain.setValueAtTime(1, offline.currentTime + bufferDuration - fadeLength);
-                        gainNode.gain.exponentialRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
+
+                        if (fadeType === 'exponential') {
+                            gainNode.gain.exponentialRampToValueAtTime(1, offline.currentTime + fadeLength);
+                            gainNode.gain.exponentialRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
+                        } else if (fadeType === 'linear') {
+                            gainNode.gain.linearRampToValueAtTime(1, offline.currentTime + fadeLength);
+                            gainNode.gain.linearRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
+                        }
+
                     }
 
                     offlineBuffer.start();

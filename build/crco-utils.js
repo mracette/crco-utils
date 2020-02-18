@@ -151,6 +151,7 @@ const regularPolygon = (nSides, size = 1, cx = 0, cy = 0, closedLoop = true, rot
 const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
   const fade = options.fade || false;
   const fadeLength = options.fadeLength || null;
+  const fadeType = options.fadeType || 'exponential';
   const offlineRendering = options.offlineRendering || false;
   const logLevel = options.logLevel || 'none';
   return new Promise((resolve, reject) => {
@@ -179,9 +180,15 @@ const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
 
           if (fade) {
             gainNode.gain.setValueAtTime(.001, offline.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(1, offline.currentTime + fadeLength);
             gainNode.gain.setValueAtTime(1, offline.currentTime + bufferDuration - fadeLength);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
+
+            if (fadeType === 'exponential') {
+              gainNode.gain.exponentialRampToValueAtTime(1, offline.currentTime + fadeLength);
+              gainNode.gain.exponentialRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
+            } else if (fadeType === 'linear') {
+              gainNode.gain.linearRampToValueAtTime(1, offline.currentTime + fadeLength);
+              gainNode.gain.linearRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
+            }
           }
 
           offlineBuffer.start();

@@ -86,7 +86,7 @@ export const linToLog = (w) => {
  * @param {number} [factor = 6] The higher the factor, the more closely the distribution resembles a Gaussian distribution. Tradeoff is speed.
  */
 export const gaussianRand = (factor = 6) => {
-    const rand = 0;
+    let rand = 0;
     for (let i = 0; i < factor; i += 1) {
         rand += Math.random();
     }

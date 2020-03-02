@@ -26,9 +26,9 @@
     "build": "rollup -c --environment BUILD:production",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "rollup -c -w --environment BUILD:development",
-    "npm-patch": "rollup -c --environment BUILD:production; npm version patch; npm publish",
-    "npm-minor": "rollup -c --environment BUILD:production; npm version minor; npm publish",
-    "npm-major": "rollup -c --environment BUILD:production; npm version major; npm publish"
+    "npm-patch": "npm version patch; npm publish",
+    "npm-minor": "npm version minor; npm publish",
+    "npm-major": "npm version major; npm publish"
   },
   "author": "Mark Racette",
   "license": "ISC"

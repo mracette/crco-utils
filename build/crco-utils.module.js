@@ -84,7 +84,7 @@ const linToLog = w => {
  */
 
 const gaussianRand = (factor = 6) => {
-  const rand = 0;
+  let rand = 0;
 
   for (let i = 0; i < factor; i += 1) {
     rand += Math.random();

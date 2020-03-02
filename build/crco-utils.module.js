@@ -245,6 +245,16 @@ const loadArrayBuffer = audioFilePath => {
   });
 };
 
+const moonYellow = '#f6f2d5';
+const offBlack = '#1f262f';
+const hotPink = '#ff4c7a';
+const hotGreen = '#00e19e';
+const hotBlue = '#00f9ff';
+
+const testStringShort = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
+const testStringMedium = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
+const testStringLong = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+
 class Spread {
   /**
    * Creates a canvas coordinate system.
@@ -555,4 +565,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, createAudioPlayer, drawLine2D, equilateralTriangle, gaussianRand, isocelesTriangle, lerp, linToLog, loadArrayBuffer, normalize, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, createAudioPlayer, drawLine2D, equilateralTriangle, gaussianRand, hotBlue, hotGreen, hotPink, isocelesTriangle, lerp, linToLog, loadArrayBuffer, moonYellow, normalize, offBlack, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star, testStringLong, testStringMedium, testStringShort };

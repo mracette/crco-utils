@@ -249,6 +249,16 @@ const loadArrayBuffer = audioFilePath => {
   });
 };
 
+const moonYellow = '#f6f2d5';
+const offBlack = '#1f262f';
+const hotPink = '#ff4c7a';
+const hotGreen = '#00e19e';
+const hotBlue = '#00f9ff';
+
+const testStringShort = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
+const testStringMedium = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
+const testStringLong = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+
 class Spread {
   /**
    * Creates a canvas coordinate system.
@@ -570,13 +580,21 @@ exports.createAudioPlayer = createAudioPlayer;
 exports.drawLine2D = drawLine2D;
 exports.equilateralTriangle = equilateralTriangle;
 exports.gaussianRand = gaussianRand;
+exports.hotBlue = hotBlue;
+exports.hotGreen = hotGreen;
+exports.hotPink = hotPink;
 exports.isocelesTriangle = isocelesTriangle;
 exports.lerp = lerp;
 exports.linToLog = linToLog;
 exports.loadArrayBuffer = loadArrayBuffer;
+exports.moonYellow = moonYellow;
 exports.normalize = normalize;
+exports.offBlack = offBlack;
 exports.polarToCart = polarToCart;
 exports.regularPolygon = regularPolygon;
 exports.rotatePoint = rotatePoint;
 exports.solveExpEquation = solveExpEquation;
 exports.star = star;
+exports.testStringLong = testStringLong;
+exports.testStringMedium = testStringMedium;
+exports.testStringShort = testStringShort;

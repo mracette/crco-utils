@@ -78,6 +78,30 @@ const linToLog = w => {
     b
   };
 };
+/**
+ * Approximates a [0, 1] gaussian distribution and returns a random number from that distribution.
+ * @param {number} [factor = 6] The higher the factor, the more closely the distribution resembles a Gaussian distribution. Tradeoff is speed.
+ */
+
+const gaussianRand = (factor = 6) => {
+  const rand = 0;
+
+  for (let i = 0; i < factor; i += 1) {
+    rand += Math.random();
+  }
+
+  return rand / factor;
+};
+const normalize = (x, y, z, r) => {
+  const nX = r * x / Math.sqrt(x * x + y * y + z * z);
+  const nY = r * y / Math.sqrt(x * x + y * y + z * z);
+  const nZ = r * z / Math.sqrt(x * x + y * y + z * z);
+  return {
+    x: nX,
+    y: nY,
+    z: nZ
+  };
+};
 
 /**
  * @param {object} context The canvas context to draw with
@@ -531,4 +555,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, createAudioPlayer, drawLine2D, equilateralTriangle, isocelesTriangle, lerp, linToLog, loadArrayBuffer, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, createAudioPlayer, drawLine2D, equilateralTriangle, gaussianRand, isocelesTriangle, lerp, linToLog, loadArrayBuffer, normalize, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star };

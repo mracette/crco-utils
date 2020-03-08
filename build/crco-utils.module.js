@@ -124,6 +124,60 @@ const drawLine2D = (context, resolution, fn) => {
 
   context.stroke();
 };
+const createBlobFromDataURL = dataURL => {
+  return new Promise(resolve => {
+    const splitIndex = dataURL.indexOf(',');
+
+    if (splitIndex === -1) {
+      resolve(new window.Blob());
+      return;
+    }
+
+    const base64 = dataURL.slice(splitIndex + 1);
+    const byteString = window.atob(base64);
+    const type = dataURL.slice(0, splitIndex);
+    const mimeMatch = /data:([^;]+)/.exec(type);
+    const mime = (mimeMatch ? mimeMatch[1] : '') || undefined;
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+
+    for (var i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+
+    resolve(new window.Blob([ab], {
+      type: mime
+    }));
+  });
+};
+/**
+ * @param {object} dataUrl The canvas context to draw with
+ * @param {string} filename The filename for the output
+ */
+
+const canvasToPng = (canvas, filename) => {
+  const dataUrl = canvas.toDataURL('image/png');
+  createBlobFromDataURL(dataUrl).then(blob => {
+    console.log(blob);
+    const link = document.createElement('a');
+    link.style.visibility = 'hidden';
+    link.target = '_blank';
+    link.download = filename;
+    link.href = window.URL.createObjectURL(blob);
+    document.body.appendChild(link);
+
+    link.onclick = () => {
+      link.onclick = noop;
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blob);
+        if (link.parentElement) link.parentElement.removeChild(link);
+        link.removeAttribute('href');
+      });
+    };
+
+    link.click();
+  });
+};
 
 const rotatePoint = (px, py, cx, cy, angle) => {
   return {
@@ -565,4 +619,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, cartToPolar, clamp, createAudioPlayer, drawLine2D, equilateralTriangle, gaussianRand, hotBlue, hotGreen, hotPink, isocelesTriangle, lerp, linToLog, loadArrayBuffer, moonYellow, normalize, offBlack, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star, testStringLong, testStringMedium, testStringShort };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, canvasToPng, cartToPolar, clamp, createAudioPlayer, createBlobFromDataURL, drawLine2D, equilateralTriangle, gaussianRand, hotBlue, hotGreen, hotPink, isocelesTriangle, lerp, linToLog, loadArrayBuffer, moonYellow, normalize, offBlack, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star, testStringLong, testStringMedium, testStringShort };

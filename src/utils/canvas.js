@@ -60,7 +60,7 @@ export const canvasToPng = (canvas, filename) => {
         document.body.appendChild(link);
 
         link.onclick = () => {
-            link.onclick = noop;
+            link.onclick = () => { };
             setTimeout(() => {
                 window.URL.revokeObjectURL(blob);
                 if (link.parentElement) link.parentElement.removeChild(link);

@@ -1,6 +1,6 @@
 {
   "name": "crco-utils",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "creative coding utilities",
   "main": "build/crco-utils.js",
   "module": "build/crco-utils.module.js",

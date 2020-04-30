@@ -29,6 +29,12 @@ export const clamp = (n, min, max) => {
     return Math.max(Math.min(max, n), min);
 }
 
+export const normalize = (n, min, max, clamp = false) => {
+    return clamp ? 
+            (n - min) / (max - min) :
+            (clamp(n, min, max) - min) / (max - min);
+}
+
 export const lerp = (n0, n1, t) => {
     return n0 * (1 - t) + n1 * t;
 }

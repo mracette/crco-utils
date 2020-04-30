@@ -29,6 +29,9 @@ const boundedCos = (period = 1, yMin = -1, yMax = 1, translateX = 0, translateY 
 const clamp = (n, min, max) => {
   return Math.max(Math.min(max, n), min);
 };
+const normalize = (n, min, max, clamp = false) => {
+  return clamp ? (n - min) / (max - min) : (clamp(n, min, max) - min) / (max - min);
+};
 const lerp = (n0, n1, t) => {
   return n0 * (1 - t) + n1 * t;
 };
@@ -56,21 +59,21 @@ const solveExpEquation = (x0, y0, x1, y1) => {
   }; // to be used y = ab^x
 };
 const linToLog = w => {
-  /* 
-  *
-  * linear scale: [1, w] 
-  *    log scale: [1, w] 
-  * 
-  * (x0, y0): (1, 1)
-  * (x1, y1): (w, w)
-  * 
-  * b = log(y0/y1)/(x0-x1)
-  * b = log(1/w)/(1-w)
-  * 
-  * a = y1/exp(b*x1)
-  * a = w/exp(b*w)
-  * 
-  */
+  /*
+   *
+   * linear scale: [1, w]
+   *    log scale: [1, w]
+   *
+   * (x0, y0): (1, 1)
+   * (x1, y1): (w, w)
+   *
+   * b = log(y0/y1)/(x0-x1)
+   * b = log(1/w)/(1-w)
+   *
+   * a = y1/exp(b*x1)
+   * a = w/exp(b*w)
+   *
+   */
   let b = Math.log(1 / w) / (1 - w);
   let a = w / Math.exp(b * w);
   return {
@@ -92,10 +95,19 @@ const gaussianRand = (factor = 6) => {
 
   return rand / factor;
 };
-const normalize = (x, y, z, r) => {
-  const nX = r * x / Math.sqrt(x * x + y * y + z * z);
-  const nY = r * y / Math.sqrt(x * x + y * y + z * z);
-  const nZ = r * z / Math.sqrt(x * x + y * y + z * z);
+/**
+ * Calculates the point where the line segment from (0, 0, 0) to (x, y, z) intersects a sphere with radius r
+ * @param {number} x the x coordinate
+ * @param {number} y the y coordinate
+ * @param {number} z the z coordinate
+ * @param {number} r the radius of the sphere
+ */
+
+const coordsToSphere = (x, y, z, r) => {
+  const d = Math.sqrt(x * x + y * y + z * z);
+  const nX = r * x / d;
+  const nY = r * y / d;
+  const nZ = r * z / d;
   return {
     x: nX,
     y: nY,
@@ -106,7 +118,7 @@ const normalize = (x, y, z, r) => {
 /**
  * @param {object} context The canvas context to draw with
  * @param {*} resolution The number of line segments
- * @param {*} fn A function that takes a normalized input in the [0, 1] range and returns 
+ * @param {*} fn A function that takes a normalized input in the [0, 1] range and returns
  * an [x, y] array that describes the coordinates of the line at that point.
  */
 const drawLine2D = (context, resolution, fn) => {
@@ -126,7 +138,7 @@ const drawLine2D = (context, resolution, fn) => {
 };
 const createBlobFromDataURL = dataURL => {
   return new Promise(resolve => {
-    const splitIndex = dataURL.indexOf(',');
+    const splitIndex = dataURL.indexOf(",");
 
     if (splitIndex === -1) {
       resolve(new window.Blob());
@@ -137,7 +149,7 @@ const createBlobFromDataURL = dataURL => {
     const byteString = window.atob(base64);
     const type = dataURL.slice(0, splitIndex);
     const mimeMatch = /data:([^;]+)/.exec(type);
-    const mime = (mimeMatch ? mimeMatch[1] : '') || undefined;
+    const mime = (mimeMatch ? mimeMatch[1] : "") || undefined;
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
 
@@ -156,12 +168,12 @@ const createBlobFromDataURL = dataURL => {
  */
 
 const canvasToPng = (canvas, filename) => {
-  const dataUrl = canvas.toDataURL('image/png');
+  const dataUrl = canvas.toDataURL("image/png");
   createBlobFromDataURL(dataUrl).then(blob => {
     console.log(blob);
-    const link = document.createElement('a');
-    link.style.visibility = 'hidden';
-    link.target = '_blank';
+    const link = document.createElement("a");
+    link.style.visibility = "hidden";
+    link.target = "_blank";
     link.download = filename;
     link.href = window.URL.createObjectURL(blob);
     document.body.appendChild(link);
@@ -172,7 +184,7 @@ const canvasToPng = (canvas, filename) => {
       setTimeout(() => {
         window.URL.revokeObjectURL(blob);
         if (link.parentElement) link.parentElement.removeChild(link);
-        link.removeAttribute('href');
+        link.removeAttribute("href");
       });
     };
 
@@ -226,9 +238,9 @@ const regularPolygon = (nSides, size = 1, cx = 0, cy = 0, closedLoop = true, rot
 const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
   const fade = options.fade || false;
   const fadeLength = options.fadeLength || null;
-  const fadeType = options.fadeType || 'exponential';
+  const fadeType = options.fadeType || "exponential";
   const offlineRendering = options.offlineRendering || false;
-  const logLevel = options.logLevel || 'none';
+  const logLevel = options.logLevel || "none";
   return new Promise((resolve, reject) => {
     loadArrayBuffer(audioFilePath).then(arrayBuffer => {
       audioCtx.decodeAudioData(arrayBuffer, function (buffer) {
@@ -241,7 +253,7 @@ const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
             const {
               renderedBuffer
             } = event;
-            logLevel === 'debug' && console.log(renderedBuffer);
+            logLevel === "debug" && console.log(renderedBuffer);
             const audioPlayer = audioCtx.createBufferSource();
             audioPlayer.buffer = renderedBuffer;
             resolve(audioPlayer);
@@ -254,13 +266,13 @@ const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
           gainNode.connect(offline.destination);
 
           if (fade) {
-            gainNode.gain.setValueAtTime(.001, offline.currentTime);
+            gainNode.gain.setValueAtTime(0.001, offline.currentTime);
             gainNode.gain.setValueAtTime(1, offline.currentTime + bufferDuration - fadeLength);
 
-            if (fadeType === 'exponential') {
+            if (fadeType === "exponential") {
               gainNode.gain.exponentialRampToValueAtTime(1, offline.currentTime + fadeLength);
               gainNode.gain.exponentialRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
-            } else if (fadeType === 'linear') {
+            } else if (fadeType === "linear") {
               gainNode.gain.linearRampToValueAtTime(1, offline.currentTime + fadeLength);
               gainNode.gain.linearRampToValueAtTime(0.001, offline.currentTime + bufferDuration);
             }
@@ -274,11 +286,11 @@ const createAudioPlayer = (audioCtx, audioFilePath, options = {}) => {
           resolve(audioPlayer);
         }
       }, err => {
-        logLevel === 'debug' && console.error(err);
+        logLevel === "debug" && console.error(err);
         reject(err);
       });
     }).catch(err => {
-      logLevel === 'debug' && console.error(err);
+      logLevel === "debug" && console.error(err);
       reject(err);
     });
   });
@@ -287,37 +299,37 @@ const loadArrayBuffer = audioFilePath => {
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
     request.responseType = "arraybuffer";
-    request.addEventListener('load', () => {
+    request.addEventListener("load", () => {
       if (request.status === 200) {
         resolve(request.response);
       }
     });
-    request.addEventListener('error', err => {
+    request.addEventListener("error", err => {
       reject(err);
     });
-    request.open('GET', audioFilePath, true);
+    request.open("GET", audioFilePath, true);
     request.send();
   });
 };
 
-const moonYellow = '#f6f2d5';
-const offBlack = '#1f262f';
-const hotPink = '#ff4c7a';
-const hotGreen = '#00e19e';
-const hotBlue = '#00f9ff';
+const moonYellow = "#f6f2d5";
+const offBlack = "#1f262f";
+const hotPink = "#ff4c7a";
+const hotGreen = "#00e19e";
+const hotBlue = "#00f9ff";
 
-const testStringShort = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
-const testStringMedium = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.';
-const testStringLong = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
+const testStringShort = "Lorem ipsum dolor sit amet, consectetur adipiscing elit";
+const testStringMedium = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+const testStringLong = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
 class Spread {
   /**
    * Creates a canvas coordinate system.
    * @param {object} [options] Optional properties of the system
    * @param {object|number} [options.anchor = 'spacing'] Defines a method (or array of methods, 1 per dimension), which decide
-   *  which to preserve in the distribution: equal spacing between points, or full range of the distribution from start to 
+   *  which to preserve in the distribution: equal spacing between points, or full range of the distribution from start to
    *  end point.
-   * @param {object|number} [options.border] The function (or array of functions, 1 per dimension) that include or exclude 
+   * @param {object|number} [options.border] The function (or array of functions, 1 per dimension) that include or exclude
    *  certain points based on a return value.
    * @param {object|number} [options.count] The count (or array of counts, 1 per dimension), that the spread data will contain.
    * @param {object} [options.bounds = [0, 10]] Defines the direction of positive Y (either 'up' or 'down').
@@ -327,7 +339,7 @@ class Spread {
    */
   constructor(options) {
     const defaults = {
-      anchor: 'spacing',
+      anchor: "spacing",
       border: undefined,
       bounds: [0, 1],
       count: 10,
@@ -355,14 +367,14 @@ class Spread {
         let value;
 
         switch (anchor) {
-          case 'spacing':
+          case "spacing":
             value = distribution(bounds[0] + units * (i + 0.5), {
               d: dim,
               i
             });
             break;
 
-          case 'endpoints':
+          case "endpoints":
             value = distribution(bounds[0] + units * i, {
               d: dim,
               i
@@ -370,7 +382,7 @@ class Spread {
             break;
 
           default:
-            throw new Error('Anchor type not valid. Choose from (spacing, endpoints).');
+            throw new Error("Anchor type not valid. Choose from (spacing, endpoints).");
         }
 
         clone.push(value);
@@ -407,7 +419,7 @@ class Spread {
   }
 
   getAnchor(d) {
-    if (typeof d === 'number') {
+    if (typeof d === "number") {
       if (Array.isArray(this.anchor)) {
         if (this.anchor[d - 1] !== undefined) {
           return this.anchor[d - 1];
@@ -421,7 +433,7 @@ class Spread {
   }
 
   getBounds(d) {
-    if (typeof d === 'number') {
+    if (typeof d === "number") {
       if (Array.isArray(this.bounds[0])) {
         if (this.bounds[d - 1] !== undefined) {
           return this.bounds[d - 1];
@@ -435,7 +447,7 @@ class Spread {
   }
 
   getCount(d) {
-    if (typeof d === 'number') {
+    if (typeof d === "number") {
       if (Array.isArray(this.count)) {
         if (this.count[d - 1] !== undefined) {
           return this.count[d - 1];
@@ -449,7 +461,7 @@ class Spread {
   }
 
   getDistribution(d) {
-    if (typeof d === 'number') {
+    if (typeof d === "number") {
       if (Array.isArray(this.distribution)) {
         if (this.distribution[d - 1] !== undefined) {
           return this.distribution[d - 1];
@@ -492,8 +504,8 @@ class CanvasCoordinates {
    * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down').
    */
   constructor(options = {}) {
-    if (typeof options.baseHeight === 'undefined' && typeof options.canvas === 'undefined' || typeof options.baseWidth === 'undefined' && typeof options.canvas === 'undefined') {
-      throw new Error('Invalid options. A canvas element must be supplied if baseHeight or baseWidth are not defined.');
+    if (typeof options.baseHeight === "undefined" && typeof options.canvas === "undefined" || typeof options.baseWidth === "undefined" && typeof options.canvas === "undefined") {
+      throw new Error("Invalid options. A canvas element must be supplied if baseHeight or baseWidth are not defined.");
     }
 
     const defaults = {
@@ -508,7 +520,7 @@ class CanvasCoordinates {
       clamp: false,
       baseHeight: null,
       baseWidth: null,
-      orientationY: 'down'
+      orientationY: "down"
     };
     Object.assign(this, { ...defaults,
       ...options
@@ -527,7 +539,7 @@ class CanvasCoordinates {
     let padding;
     this.clamp && (n = clamp(n, this.nxRange[0], this.nxRange[1]));
 
-    if (typeof options.padding === 'number') {
+    if (typeof options.padding === "number") {
       padding = options.padding * this.width;
     } else {
       padding = (this.paddingX || this.padding) * this.width;
@@ -545,7 +557,7 @@ class CanvasCoordinates {
   xn(x, options = {}) {
     let padding;
 
-    if (typeof options.padding === 'number') {
+    if (typeof options.padding === "number") {
       padding = options.padding * this.width;
     } else {
       padding = (this.paddingX || this.padding) * this.width;
@@ -565,17 +577,17 @@ class CanvasCoordinates {
     let padding;
     this.clamp && (n = clamp(n, this.nyRange[0], this.nyRange[1]));
 
-    if (typeof options.paddingY === 'number') {
+    if (typeof options.paddingY === "number") {
       padding = options.paddingY * this.height;
-    } else if (typeof options.padding === 'number') {
+    } else if (typeof options.padding === "number") {
       padding = options.padding * this.width;
     } else {
-      padding = typeof this.paddingY === 'number' ? this.paddingY * this.height : this.padding * this.width;
+      padding = typeof this.paddingY === "number" ? this.paddingY * this.height : this.padding * this.width;
     }
 
-    if (this.orientationY === 'down') {
+    if (this.orientationY === "down") {
       return padding + this.yOffset + (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
-    } else if (this.orientationY === 'up') {
+    } else if (this.orientationY === "up") {
       return this.height - padding - this.yOffset - (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
     }
   }
@@ -589,17 +601,17 @@ class CanvasCoordinates {
   yn(y, options = {}) {
     let padding;
 
-    if (typeof options.paddingY === 'number') {
+    if (typeof options.paddingY === "number") {
       padding = options.paddingY * this.height;
-    } else if (typeof options.padding === 'number') {
+    } else if (typeof options.padding === "number") {
       padding = options.padding * this.width;
     } else {
-      padding = typeof this.paddingY === 'number' ? this.paddingY * this.height : this.padding * this.width;
+      padding = typeof this.paddingY === "number" ? this.paddingY * this.height : this.padding * this.width;
     }
 
-    if (this.orientationY === 'down') {
+    if (this.orientationY === "down") {
       return (y - padding - this.yOffset) / (this.height - padding * 2);
-    } else if (this.orientationY === 'up') {
+    } else if (this.orientationY === "up") {
       return (this.height - y - padding - this.yOffset) / (this.height - padding * 2);
     }
   }
@@ -609,9 +621,9 @@ class CanvasCoordinates {
   }
 
   getHeight() {
-    if (this.orientationY === 'down') {
+    if (this.orientationY === "down") {
       return this.ny(this.nyRange[1]) - this.ny(this.nyRange[0]);
-    } else if (this.orientationY === 'up') {
+    } else if (this.orientationY === "up") {
       return this.ny(this.nyRange[0]) - this.ny(this.nyRange[1]);
     } else {
       return undefined;
@@ -620,4 +632,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, canvasToPng, cartToPolar, clamp, createAudioPlayer, createBlobFromDataURL, drawLine2D, equilateralTriangle, gaussianRand, hotBlue, hotGreen, hotPink, isocelesTriangle, lerp, linToLog, loadArrayBuffer, moonYellow, normalize, offBlack, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star, testStringLong, testStringMedium, testStringShort };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, canvasToPng, cartToPolar, clamp, coordsToSphere, createAudioPlayer, createBlobFromDataURL, drawLine2D, equilateralTriangle, gaussianRand, hotBlue, hotGreen, hotPink, isocelesTriangle, lerp, linToLog, loadArrayBuffer, moonYellow, normalize, offBlack, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star, testStringLong, testStringMedium, testStringShort };

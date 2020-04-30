@@ -32,7 +32,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "rollup -c -w --environment BUILD:development",
     "get-version": "echo $npm_package_version",
-    "npm-commit": "git add .; npm git commit -m 'published version $(npm run get-version) to npm'",
+    "npm-commit": "git add .; git commit -m 'published version $(npm run get-version) to npm'",
     "npm-patch": "npm version patch; npm run build; npm run npm-commit; npm publish",
     "npm-minor": "npm version minor; npm run build; npm run npm-commit; npm publish",
     "npm-major": "npm version major; npm run build; npm run npm-commit; npm publish",

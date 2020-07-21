@@ -564,16 +564,9 @@ class CanvasCoordinates {
     };
     Object.assign(this, { ...defaults,
       ...options
-    });
-    this.width = this.baseWidth || this.canvas.width;
-    this.height = this.baseHeight || this.canvas.height;
+    }); // sets base width / height
 
-    if (this.resize && this.canvas) {
-      this.canvas.addEventListener("resize", () => {
-        this.width = this.baseWidth || this.canvas.width;
-        this.height = this.baseHeight || this.canvas.height;
-      });
-    }
+    this.resize();
   }
   /**
    * Maps a normalized x-value to a canvas x-value
@@ -587,12 +580,12 @@ class CanvasCoordinates {
     this.clamp && (n = clamp(n, this.nxRange[0], this.nxRange[1]));
 
     if (typeof options.padding === "number") {
-      padding = options.padding * this.width;
+      padding = options.padding * this._baseWidth;
     } else {
-      padding = (this.paddingX || this.padding) * this.width;
+      padding = (this.paddingX || this.padding) * this._baseWidth;
     }
 
-    return padding + this.xOffset + (n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0]) * (this.width - 2 * padding);
+    return padding + this.xOffset + (n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0]) * (this._baseWidth - 2 * padding);
   }
   /**
    * Maps a canvas x-value to a normalized x-value
@@ -605,12 +598,12 @@ class CanvasCoordinates {
     let padding;
 
     if (typeof options.padding === "number") {
-      padding = options.padding * this.width;
+      padding = options.padding * this._baseWidth;
     } else {
-      padding = (this.paddingX || this.padding) * this.width;
+      padding = (this.paddingX || this.padding) * this._baseWidth;
     }
 
-    return (x - padding - this.xOffset) / (this.width - padding * 2);
+    return (x - padding - this.xOffset) / (this._baseWidth - padding * 2);
   }
   /**
    * Maps a normalized y-value to a canvas y-value
@@ -625,17 +618,17 @@ class CanvasCoordinates {
     this.clamp && (n = clamp(n, this.nyRange[0], this.nyRange[1]));
 
     if (typeof options.paddingY === "number") {
-      padding = options.paddingY * this.height;
+      padding = options.paddingY * this._baseHeight;
     } else if (typeof options.padding === "number") {
-      padding = options.padding * this.width;
+      padding = options.padding * this._baseWidth;
     } else {
-      padding = typeof this.paddingY === "number" ? this.paddingY * this.height : this.padding * this.width;
+      padding = typeof this.paddingY === "number" ? this.paddingY * this._baseHeight : this.padding * this._baseWidth;
     }
 
     if (this.orientationY === "down") {
-      return padding + this.yOffset + (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
+      return padding + this.yOffset + (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this._baseHeight - 2 * padding);
     } else if (this.orientationY === "up") {
-      return this.height - padding - this.yOffset - (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this.height - 2 * padding);
+      return this._baseHeight - padding - this.yOffset - (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]) * (this._baseHeight - 2 * padding);
     }
   }
   /**
@@ -649,23 +642,31 @@ class CanvasCoordinates {
     let padding;
 
     if (typeof options.paddingY === "number") {
-      padding = options.paddingY * this.height;
+      padding = options.paddingY * this._baseHeight;
     } else if (typeof options.padding === "number") {
-      padding = options.padding * this.width;
+      padding = options.padding * this._baseWidth;
     } else {
-      padding = typeof this.paddingY === "number" ? this.paddingY * this.height : this.padding * this.width;
+      padding = typeof this.paddingY === "number" ? this.paddingY * this._baseHeight : this.padding * this._baseWidth;
     }
 
     if (this.orientationY === "down") {
-      return (y - padding - this.yOffset) / (this.height - padding * 2);
+      return (y - padding - this.yOffset) / (this._baseHeight - padding * 2);
     } else if (this.orientationY === "up") {
-      return (this.height - y - padding - this.yOffset) / (this.height - padding * 2);
+      return (this._baseHeight - y - padding - this.yOffset) / (this._baseHeight - padding * 2);
     }
   }
+  /**
+   * Returns the width of the coordinate system in canvas dimensions
+   */
+
 
   getWidth() {
     return this.nx(this.nxRange[1]) - this.nx(this.nxRange[0]);
   }
+  /**
+   * Returns the height of the coordinate system in canvas dimensions
+   */
+
 
   getHeight() {
     if (this.orientationY === "down") {
@@ -675,6 +676,18 @@ class CanvasCoordinates {
     } else {
       return undefined;
     }
+  }
+  /**
+   * Resizes the base dimensions of the coordinate system, appropriate
+   * for when the underlying canvas element has changed sizes
+   * (if baseWidth / baseHeight were used in the instantiation of these CanvasCoordinates,
+   * then this function does nothing and the base dimensions remain the same)
+   */
+
+
+  resize() {
+    this._baseWidth = this.baseWidth || this.canvas.width;
+    this._baseHeight = this.baseHeight || this.canvas.height;
   }
 
 }

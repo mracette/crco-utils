@@ -16,7 +16,6 @@ export class CanvasCoordinates {
    * @param {number} [options.baseHeight] If specified, coordinates will map to this height instead of the canvas height (px)
    * @param {boolean} [options.clamp = false] Whether or not to clamp coordinate that are outside of the bounds
    * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down')
-   * @param {boolean} [options.resize = false] If true, appends an event listener to the canvas element and updates the coordinate system on resize (only valid if a canvas is supplied)
    */
 
   constructor(options = {}) {
@@ -44,13 +43,13 @@ export class CanvasCoordinates {
       baseHeight: null,
       baseWidth: null,
       orientationY: "down",
-      resize: false,
     };
 
     Object.assign(this, { ...defaults, ...options });
 
-    // sets base width / height
-    this.resize();
+    // set base width / height
+    this._baseWidth = this.baseWidth || this.canvas.width;
+    this._baseHeight = this.baseHeight || this.canvas.height;
   }
 
   /**

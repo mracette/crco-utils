@@ -33,7 +33,7 @@ export const saveCtx2d = (context) => {
   const state = {};
   props.forEach((prop) => {
     try {
-      state[prop] = ctx[prop];
+      state[prop] = context[prop];
     } catch (err) {
       console.log(
         `Could not fetch canvas property. Update props list with latest from the Canvas API. ${err}`

@@ -116,11 +116,49 @@ const coordsToSphere = (x, y, z, r) => {
 };
 
 /**
+ * Alternate to ctx.save() that will persist state following a canvas resize event.
+ * https://stackoverflow.com/questions/48044951/canvas-state-lost-after-changing-size
+ *
+ * In its current implementation, properties need to be hardcoded. I'd love a solution where
+ * the browsers CanvasRenderingContext2D implementation is used to generate the property list
+ * (without the overhead of creating a new canvas element every time)
+ *
+ * @param {CanvasRenderingContext2D} context The context to save.
+ *
+ */
+const saveCtx2d = context => {
+  const props = ["strokeStyle", "fillStyle", "globalAlpha", "lineWidth", "lineCap", "lineJoin", "miterLimit", "lineDashOffset", "shadowOffsetX", "shadowOffsetY", "shadowBlur", "shadowColor", "globalCompositeOperation", "font", "textAlign", "textBaseline", "direction", "imageSmoothingEnabled"];
+  const state = {};
+  props.forEach(prop => {
+    try {
+      state[prop] = ctx[prop];
+    } catch (err) {
+      console.log(`Could not fetch canvas property. Update props list with latest from the Canvas API. ${err}`);
+    }
+  });
+  return state;
+};
+/**
+ * Alternate to ctx.restore() that will persist state following a canvas resize event.
+ * https://stackoverflow.com/questions/48044951/canvas-state-lost-after-changing-size
+ *
+ * @param {CanvasRenderingContext2D} context The context to restore.
+ * @param {object} state A mapping of properties to values representing the state to restore.
+ *
+ */
+
+const restoreCtx2d = (context, state) => {
+  for (let prop in state) {
+    context[prop] = state[prop];
+  }
+};
+/**
  * @param {object} context The canvas context to draw with
  * @param {*} resolution The number of line segments
  * @param {*} fn A function that takes a normalized input in the [0, 1] range and returns
  * an [x, y] array that describes the coordinates of the line at that point.
  */
+
 const drawLine2D = (context, resolution, fn) => {
   context.beginPath();
 
@@ -501,7 +539,8 @@ class CanvasCoordinates {
    * @param {number} [options.baseWidth] If specified, coordinates will map to this width instead of the canvas width (px)
    * @param {number} [options.baseHeight] If specified, coordinates will map to this height instead of the canvas height (px)
    * @param {boolean} [options.clamp = false] Whether or not to clamp coordinate that are outside of the bounds
-   * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down').
+   * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down')
+   * @param {boolean} [options.resize = false] If true, appends an event listener to the canvas element and updates the coordinate system on resize (only valid if a canvas is supplied)
    */
   constructor(options = {}) {
     if (typeof options.baseHeight === "undefined" && typeof options.canvas === "undefined" || typeof options.baseWidth === "undefined" && typeof options.canvas === "undefined") {
@@ -520,13 +559,21 @@ class CanvasCoordinates {
       clamp: false,
       baseHeight: null,
       baseWidth: null,
-      orientationY: "down"
+      orientationY: "down",
+      resize: false
     };
     Object.assign(this, { ...defaults,
       ...options
     });
     this.width = this.baseWidth || this.canvas.width;
     this.height = this.baseHeight || this.canvas.height;
+
+    if (this.resize && this.canvas) {
+      this.canvas.addEventListener("resize", () => {
+        this.width = this.baseWidth || this.canvas.width;
+        this.height = this.baseHeight || this.canvas.height;
+      });
+    }
   }
   /**
    * Maps a normalized x-value to a canvas x-value
@@ -632,4 +679,4 @@ class CanvasCoordinates {
 
 }
 
-export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, canvasToPng, cartToPolar, clamp, coordsToSphere, createAudioPlayer, createBlobFromDataURL, drawLine2D, equilateralTriangle, gaussianRand, hotBlue, hotGreen, hotPink, isocelesTriangle, lerp, linToLog, loadArrayBuffer, moonYellow, normalize, offBlack, polarToCart, regularPolygon, rotatePoint, solveExpEquation, star, testStringLong, testStringMedium, testStringShort };
+export { CanvasCoordinates, Spread, TAU, boundedCos, boundedSin, canvasToPng, cartToPolar, clamp, coordsToSphere, createAudioPlayer, createBlobFromDataURL, drawLine2D, equilateralTriangle, gaussianRand, hotBlue, hotGreen, hotPink, isocelesTriangle, lerp, linToLog, loadArrayBuffer, moonYellow, normalize, offBlack, polarToCart, regularPolygon, restoreCtx2d, rotatePoint, saveCtx2d, solveExpEquation, star, testStringLong, testStringMedium, testStringShort };

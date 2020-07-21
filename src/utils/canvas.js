@@ -1,4 +1,63 @@
 /**
+ * Alternate to ctx.save() that will persist state following a canvas resize event.
+ * https://stackoverflow.com/questions/48044951/canvas-state-lost-after-changing-size
+ *
+ * In its current implementation, properties need to be hardcoded. I'd love a solution where
+ * the browsers CanvasRenderingContext2D implementation is used to generate the property list
+ * (without the overhead of creating a new canvas element every time)
+ *
+ * @param {CanvasRenderingContext2D} context The context to save.
+ *
+ */
+export const saveCtx2d = (context) => {
+  const props = [
+    "strokeStyle",
+    "fillStyle",
+    "globalAlpha",
+    "lineWidth",
+    "lineCap",
+    "lineJoin",
+    "miterLimit",
+    "lineDashOffset",
+    "shadowOffsetX",
+    "shadowOffsetY",
+    "shadowBlur",
+    "shadowColor",
+    "globalCompositeOperation",
+    "font",
+    "textAlign",
+    "textBaseline",
+    "direction",
+    "imageSmoothingEnabled",
+  ];
+  const state = {};
+  props.forEach((prop) => {
+    try {
+      state[prop] = ctx[prop];
+    } catch (err) {
+      console.log(
+        `Could not fetch canvas property. Update props list with latest from the Canvas API. ${err}`
+      );
+    }
+  });
+  return state;
+};
+
+/**
+ * Alternate to ctx.restore() that will persist state following a canvas resize event.
+ * https://stackoverflow.com/questions/48044951/canvas-state-lost-after-changing-size
+ *
+ * @param {CanvasRenderingContext2D} context The context to restore.
+ * @param {object} state A mapping of properties to values representing the state to restore.
+ *
+ */
+export const restoreCtx2d = (context, state) => {
+  for (let prop in state) {
+    context[prop] = state[prop];
+  }
+};
+
+/**
  * @param {object} context The canvas context to draw with
  * @param {*} resolution The number of line segments
  * @param {*} fn A function that takes a normalized input in the [0, 1] range and returns

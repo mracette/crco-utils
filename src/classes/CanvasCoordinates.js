@@ -3,27 +3,25 @@ import { clamp } from "../utils/math";
 export class CanvasCoordinates {
   /**
    * Creates a canvas coordinate system.
-   * @param {object} [options] Optional properties of the system
-   * @param {object} [options.nxRange = [-1, 1]] An array that represents the bounds of the normalized x axis
-   * @param {object} [options.nyRange = [-1, 1]] An array that represents the bounds of the normalized y axis
-   * @param {number} [options.padding = 0] Defines padding as a proportion of the canvas width
-   * @param {number} [options.paddingX = 0] Defines X padding as a proportion of the canvas width (if defined, overrides options.padding)
-   * @param {number} [options.paddingY = 0] Defines Y padding as a proportion of the canvas height (if defined, overrides options.padding)
-   * @param {number} [options.xOffset = 0] Defines the canvas coords of nx(0)
-   * @param {number} [options.yOffset = 0] Defines the canvas coords of ny(0)
-   * @param {object} [options.canvas] The canvas to map the coordinate system to
-   * @param {number} [options.baseWidth] If specified, coordinates will map to this width instead of the canvas width (px)
-   * @param {number} [options.baseHeight] If specified, coordinates will map to this height instead of the canvas height (px)
-   * @param {boolean} [options.clamp = false] Whether or not to clamp coordinate that are outside of the bounds
-   * @param {number} [options.orientationY = 'up'] Defines the direction of positive Y (either 'up' or 'down')
+   * @param   {object} [opts] Optional properties of the system
+   * @param   {object} [opts.canvas] The canvas to map the coordinate system to
+   * @param   {number} [opts.baseWidth] If specified, coordinates will map to this width instead of the canvas width (px)
+   * @param   {number} [opts.baseHeight] If specified, coordinates will map to this height instead of the canvas height (px)
+   * @param   {object} [opts.nxRange = [-1, 1]] An array that represents the bounds of the normalized x axis
+   * @param   {object} [opts.nyRange = [-1, 1]] An array that represents the bounds of the normalized y axis
+   * @param   {number} [opts.padding = 0] Defines padding as a proportion of the canvas width
+   * @param   {number} [opts.paddingX = 0] Defines X padding as a proportion of the canvas width (if defined, overrides opts.padding)
+   * @param   {number} [opts.paddingY = 0] Defines Y padding as a proportion of the canvas height (if defined, overrides opts.padding)
+   * @param   {number} [opts.xOffset = 0] Defines the canvas coords of nx(0)
+   * @param   {number} [opts.yOffset = 0] Defines the canvas coords of ny(0)
+   * @param   {boolean} [opts.clamp = false] Whether or not to clamp coordinate that are outside of the bounds
+   * @param   {number} [opts.orientationY = 'down'] Defines the direction of positive Y (either 'up' or 'down')
    */
 
-  constructor(options = {}) {
+  constructor(opts = {}) {
     if (
-      (typeof options.baseHeight === "undefined" &&
-        typeof options.canvas === "undefined") ||
-      (typeof options.baseWidth === "undefined" &&
-        typeof options.canvas === "undefined")
+      (typeof opts.baseHeight === "undefined" && typeof opts.canvas === "undefined") ||
+      (typeof opts.baseWidth === "undefined" && typeof opts.canvas === "undefined")
     ) {
       throw new Error(
         "Invalid options. A canvas element must be supplied if baseHeight or baseWidth are not defined."
@@ -33,170 +31,226 @@ export class CanvasCoordinates {
     const defaults = {
       nxRange: [-1, 1],
       nyRange: [-1, 1],
+      canvas: undefined,
+      baseHeight: undefined,
+      baseWidth: undefined,
+      paddingX: undefined,
+      paddingY: undefined,
       padding: 0,
-      paddingX: null,
-      paddingY: null,
       xOffset: 0,
       yOffset: 0,
-      canvas: null,
       clamp: false,
-      baseHeight: null,
-      baseWidth: null,
       orientationY: "down",
     };
 
-    Object.assign(this, { ...defaults, ...options });
+    Object.assign(this, { ...defaults, ...opts });
 
     // set base width / height
-    this._baseWidth = this.baseWidth || this.canvas.width;
-    this._baseHeight = this.baseHeight || this.canvas.height;
+    this.baseWidth = this.canvas ? this.canvas.width : this.baseWidth;
+    this.baseHeight = this.canvas ? this.canvas.height : this.baseHeight;
+
+    // calculate canvas-unit padding amounts
+    this.memoizePaddingX();
+    this.memoizePaddingY();
+  }
+
+  /**
+   * Sets the normalized padding amount.
+   * @param   {number} value A number in the range [0, 1]
+   */
+  setPadding(value) {
+    this.padding = value;
+    this.memoizePaddingX();
+    this.memoizePaddingY();
+  }
+
+  /**
+   * Sets the normalized X-padding amount.
+   * @param   {number} value A number in the range [0, 1]
+   */
+  setPaddingX(value) {
+    this.paddingX = value;
+    this.memoizePaddingX();
+  }
+
+  /**
+   * Sets the normalized Y-padding amount.
+   * @param   {number} value A number in the range [0, 1]
+   */
+  setPaddingY(value) {
+    this.paddingY = value;
+    this.memoizePaddingY();
+  }
+
+  /**
+   * Sets the X-offset amount.
+   * @param   {number} value The new X-offset.
+   */
+  setXOffset(value) {
+    this.xOffset = value;
+  }
+
+  /**
+   * Sets the Y-offset amount.
+   * @param   {number} value The new Y-offset.
+   */
+  setYOffset(value) {
+    this.yOffset = value;
+  }
+
+  /**
+   * Sets the Y-orientation
+   * @param   {string} orientation The new y-orientation (one of 'up', 'down')
+   */
+  setOrientationY(orientation) {
+    this.orientationY = orientation;
+  }
+
+  /**
+   * Calculates and stores the X-padding amount in canvas units, using
+   * this.paddingX if available, with a fallback to this.padding.
+   * Stores the result in this.calculatedPaddingX for efficient retrieval.
+   * @returns {number} The calculated X-padding in canvas units.
+   */
+  memoizePaddingX() {
+    if (typeof this.paddingX === "undefined") {
+      this.calculatedPaddingX = this.padding * this.baseWidth;
+    } else {
+      this.calculatedPaddingX = this.paddingX * this.baseWidth;
+    }
+    return this.calculatedPaddingX;
+  }
+
+  /**
+   * Calculates and stores the X-padding amount in canvas units, using
+   * this.paddingX if available, with a fallback to this.padding.
+   * Stores the result in this.calculatedPaddingX for efficient retrieval.
+   * @returns {number} The calculated X-padding in canvas units.
+   */
+  memoizePaddingY() {
+    if (typeof this.paddingY === "undefined") {
+      this.calculatedPaddingY = this.padding * this.baseWidth;
+    } else {
+      this.calculatedPaddingY = this.paddingY * this.baseHeight;
+    }
+    return this.calculatedPaddingY;
   }
 
   /**
    * Maps a normalized x-value to a canvas x-value
-   * @param {object} n A normalized x-value in the range [0, 1]
-   * @param {number} [options.padding] Defines padding as a proportion of the canvas width (if defined, overrides padding settings for the system)
+   * @param   {object} n
+   *          A normalized x-value in the range [0, 1]
    */
-
-  nx(n, options = {}) {
-    let padding;
-
+  nx(n) {
     this.clamp && (n = clamp(n, this.nxRange[0], this.nxRange[1]));
+    const xOffset = this.calculatedPaddingX + this.xOffset;
+    const xProportion = (n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0]);
+    const xRange = this.baseWidth - 2 * this.calculatedPaddingX;
+    return xOffset + xProportion * xRange;
+  }
 
-    if (typeof options.padding === "number") {
-      padding = options.padding * this._baseWidth;
-    } else {
-      padding = (this.paddingX || this.padding) * this._baseWidth;
-    }
-
+  /**
+   * Maps a canvas y-value to a normalized y-value
+   * @param   {number} x
+   *          A value in the range [0, canvas.width]
+   * @returns {number}
+   *          The normalized y-value
+   */
+  xn(x) {
+    this.clamp && (x = clamp(x, 0, this.baseWidth));
     return (
-      padding +
-      this.xOffset +
-      ((n - this.nxRange[0]) / (this.nxRange[1] - this.nxRange[0])) *
-        (this._baseWidth - 2 * padding)
+      (x - this.calculatedPaddingX - this.xOffset) / (this.baseWidth - this.calculatedPaddingX * 2)
     );
   }
 
   /**
-   * Maps a canvas x-value to a normalized x-value
-   * @param {object} n A canvas x-value in the range [0, canvas.width]
-   * @param {number} [options.padding] Defines padding as a proportion of the canvas width (if defined, overrides padding settings for the system)
-   */
-
-  xn(x, options = {}) {
-    let padding;
-
-    if (typeof options.padding === "number") {
-      padding = options.padding * this._baseWidth;
-    } else {
-      padding = (this.paddingX || this.padding) * this._baseWidth;
-    }
-
-    return (x - padding - this.xOffset) / (this._baseWidth - padding * 2);
-  }
-
-  /**
    * Maps a normalized y-value to a canvas y-value
-   * @param {object} n A normalized y-value in the range [0, 1]
-   * @param {number} [options.padding] Defines padding as a proportion of the canvas width (if defined, overrides padding settings for the system)
-   * @param {number} [options.paddingY] Defines padding as a proportion of the canvas height (if defined, overrides padding settings for the system)
+   * @param   {object} n A normalized y-value in the range [0, 1]
    */
-
-  ny(n, options = {}) {
-    let padding;
-
+  ny(n) {
     this.clamp && (n = clamp(n, this.nyRange[0], this.nyRange[1]));
-
-    if (typeof options.paddingY === "number") {
-      padding = options.paddingY * this._baseHeight;
-    } else if (typeof options.padding === "number") {
-      padding = options.padding * this._baseWidth;
-    } else {
-      padding =
-        typeof this.paddingY === "number"
-          ? this.paddingY * this._baseHeight
-          : this.padding * this._baseWidth;
-    }
-
+    const yOffset = this.calculatedPaddingY + this.yOffset;
+    const yProportion = (n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0]);
+    const yRange = this.baseHeight - 2 * this.calculatedPaddingY;
     if (this.orientationY === "down") {
-      return (
-        padding +
-        this.yOffset +
-        ((n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0])) *
-          (this._baseHeight - 2 * padding)
-      );
+      return yOffset + yProportion * yRange;
     } else if (this.orientationY === "up") {
-      return (
-        this._baseHeight -
-        padding -
-        this.yOffset -
-        ((n - this.nyRange[0]) / (this.nyRange[1] - this.nyRange[0])) *
-          (this._baseHeight - 2 * padding)
-      );
+      return this.baseHeight - yOffset - yProportion * yRange;
     }
   }
 
   /**
    * Maps a canvas y-value to a normalized y-value
-   * @param {object} n A canvas y-value in the range [0, canvas.height]
-   * @param {number} [options.padding] Defines padding as a proportion of the canvas height (if defined, overrides padding settings for the system)
+   * @param   {number} y
+   *          A value in the range [0, canvas.height]
+   * @returns {number}
+   *          The normalized y-value
    */
-
-  yn(y, options = {}) {
-    let padding;
-
-    if (typeof options.paddingY === "number") {
-      padding = options.paddingY * this._baseHeight;
-    } else if (typeof options.padding === "number") {
-      padding = options.padding * this._baseWidth;
+  yn(y) {
+    this.clamp && (x = clamp(x, 0, this.baseWidth));
+    if (typeof opts.paddingY === "number") {
+      padding = opts.paddingY * this.baseHeight;
+    } else if (typeof opts.padding === "number") {
+      padding = opts.padding * this.baseWidth;
     } else {
       padding =
         typeof this.paddingY === "number"
-          ? this.paddingY * this._baseHeight
-          : this.padding * this._baseWidth;
+          ? this.paddingY * this.baseHeight
+          : this.padding * this.baseWidth;
     }
 
     if (this.orientationY === "down") {
-      return (y - padding - this.yOffset) / (this._baseHeight - padding * 2);
+      return (y - padding - this.yOffset) / (this.baseHeight - padding * 2);
     } else if (this.orientationY === "up") {
-      return (
-        (this._baseHeight - y - padding - this.yOffset) /
-        (this._baseHeight - padding * 2)
-      );
+      return (this.baseHeight - y - padding - this.yOffset) / (this.baseHeight - padding * 2);
     }
   }
 
   /**
-   * Returns the width of the coordinate system in canvas dimensions
+   * Returns the width of the coordinate system, in canvas units, with an optional multiplier.
+   * @param   {number} [n = 1]
+   *          An optional multiplier
+   * @returns {number}
+   *          The width of the coordinate system, in canvas units, multiplied by n
    */
-
-  getWidth() {
-    return this.nx(this.nxRange[1]) - this.nx(this.nxRange[0]);
-  }
-
-  /**
-   * Returns the height of the coordinate system in canvas dimensions
-   */
-
-  getHeight() {
-    if (this.orientationY === "down") {
-      return this.ny(this.nyRange[1]) - this.ny(this.nyRange[0]);
-    } else if (this.orientationY === "up") {
-      return this.ny(this.nyRange[0]) - this.ny(this.nyRange[1]);
+  getWidth(n) {
+    const width = this.nx(this.nxRange[1]) - this.nx(this.nxRange[0]);
+    if (typeof n === "undefined") {
+      return width;
     } else {
-      return undefined;
+      return width * n;
+    }
+  }
+
+  /**
+   * Returns the height of the coordinate system, in canvas units, with an optional multiplier.
+   * @param   {number} [n = 1]
+   *          An optional multiplier
+   * @returns {number}
+   *          The height of the coordinate system, in canvas units, multiplied by n
+   */
+  getHeight() {
+    let height;
+    if (this.orientationY === "down") {
+      height = this.ny(this.nyRange[1]) - this.ny(this.nyRange[0]);
+    } else if (this.orientationY === "up") {
+      height = this.ny(this.nyRange[0]) - this.ny(this.nyRange[1]);
+    }
+    if (typeof n === "undefined") {
+      return height;
+    } else {
+      return height * n;
     }
   }
 
   /**
    * Resizes the base dimensions of the coordinate system, appropriate
-   * for when the underlying canvas element has changed sizes
-   * (if baseWidth / baseHeight were used in the instantiation of these CanvasCoordinates,
-   * then this function does nothing and the base dimensions remain the same)
+   * for when the underlying canvas element has changed sizes.
+   * If baseWidth and baseHeight were used in the instantiation of CanvasCoordinates,
+   * then this function does nothing and the base dimensions remain the same.
    */
-
   resize() {
-    this._baseWidth = this.baseWidth || this.canvas.width;
-    this._baseHeight = this.baseHeight || this.canvas.height;
+    this.baseWidth = this.baseWidth || this.canvas.width;
+    this.baseHeight = this.baseHeight || this.canvas.height;
   }
 }

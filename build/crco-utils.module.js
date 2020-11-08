@@ -773,7 +773,7 @@ class CanvasCoordinates {
    */
 
 
-  getWidth(n) {
+  width(n) {
     const width = this.nx(this.nxRange[1]) - this.nx(this.nxRange[0]);
 
     if (typeof n === "undefined") {
@@ -791,7 +791,7 @@ class CanvasCoordinates {
    */
 
 
-  getHeight() {
+  height(n) {
     let height;
 
     if (this.orientationY === "down") {

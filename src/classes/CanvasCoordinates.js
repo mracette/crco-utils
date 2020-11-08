@@ -241,7 +241,7 @@ export class CanvasCoordinates {
    * @returns {number}
    *          The width of the coordinate system, in canvas units, multiplied by n
    */
-  getWidth(n) {
+  width(n) {
     const width = this.nx(this.nxRange[1]) - this.nx(this.nxRange[0]);
     if (typeof n === "undefined") {
       return width;
@@ -257,7 +257,7 @@ export class CanvasCoordinates {
    * @returns {number}
    *          The height of the coordinate system, in canvas units, multiplied by n
    */
-  getHeight() {
+  height(n) {
     let height;
     if (this.orientationY === "down") {
       height = this.ny(this.nyRange[1]) - this.ny(this.nyRange[0]);

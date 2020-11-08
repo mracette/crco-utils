@@ -153,3 +153,47 @@ test("resize", () => {
   expect(coords.ny(0)).toBe(500);
   expect(coords.ny(1)).toBe(1000);
 });
+
+test("width", () => {
+  coords = new crco.CanvasCoordinates({
+    baseWidth: 100,
+    baseHeight: 100,
+  });
+  expect(coords.width()).toBe(100);
+  expect(coords.width(1)).toBe(100);
+  expect(coords.width(0.5)).toBe(50);
+  expect(coords.width(-1)).toBe(-100);
+  expect(coords.width(1.5)).toBe(150);
+  // unaffected by clamp
+  coords.setClamp(true);
+  expect(coords.width(1.5)).toBe(150);
+  // test with padding
+  coords.setPadding(0.1);
+  expect(coords.width()).toBe(80);
+  expect(coords.width(0.5)).toBe(40);
+  coords.setPaddingX(0.2);
+  expect(coords.width()).toBe(60);
+  expect(coords.width(0.5)).toBe(30);
+});
+
+test("height", () => {
+  coords = new crco.CanvasCoordinates({
+    baseWidth: 100,
+    baseHeight: 100,
+  });
+  expect(coords.height()).toBe(100);
+  expect(coords.height(1)).toBe(100);
+  expect(coords.height(0.5)).toBe(50);
+  expect(coords.height(-1)).toBe(-100);
+  expect(coords.height(1.5)).toBe(150);
+  // unaffected by clamp
+  coords.setClamp(true);
+  expect(coords.width(1.5)).toBe(150);
+  // test with padding
+  coords.setPadding(0.1);
+  expect(coords.height()).toBe(80);
+  expect(coords.height(0.5)).toBe(40);
+  coords.setPaddingY(0.2);
+  expect(coords.height()).toBe(60);
+  expect(coords.height(0.5)).toBe(30);
+});

@@ -44,8 +44,7 @@ const draw = (name, params) => {
       crco.drawLine2D(context, params.resolution, (i) => {
         return [
           i * canvas.width,
-          canvas.height / 2 +
-            (curve(i) * (canvas.height - params.lineWidth)) / 2,
+          canvas.height / 2 + (curve(i) * (canvas.height - params.lineWidth)) / 2,
         ];
       });
       break;
@@ -63,10 +62,7 @@ const draw = (name, params) => {
       context.beginPath();
       context.arc(coords.nx(-1), coords.ny(-1), 50, 0, crco.TAU);
       context.fill();
-      crco.drawLine2D(context, 2, (i) => [
-        coords.nx(-1 + 2 * i),
-        coords.ny(-1),
-      ]);
+      crco.drawLine2D(context, 2, (i) => [coords.nx(-1 + 2 * i), coords.ny(-1)]);
       context.beginPath();
       context.arc(coords.nx(-1), coords.ny(-1), 50, 0, crco.TAU);
       context.fill();
@@ -74,10 +70,7 @@ const draw = (name, params) => {
       context.beginPath();
       context.arc(coords.nx(1), coords.ny(-1), 50, 0, crco.TAU);
       context.fill();
-      crco.drawLine2D(context, 2, (i) => [
-        coords.nx(-1),
-        coords.ny(-1 + 2 * i),
-      ]);
+      crco.drawLine2D(context, 2, (i) => [coords.nx(-1), coords.ny(-1 + 2 * i)]);
       context.beginPath();
       context.arc(coords.nx(-1), coords.ny(1), 50, 0, crco.TAU);
       context.fill();
@@ -109,9 +102,7 @@ const updateGUI = () => {
       controllers.push(ff.add(displayParams, "translateX", -10, 10, 0.1));
       controllers.push(ff.add(displayParams, "translateY", -10, 10, 0.1));
       controllers.push(ff.add(displayParams, "inverse"));
-      controllers.forEach((c) =>
-        c.onChange(() => draw(display.current, displayParams))
-      );
+      controllers.forEach((c) => c.onChange(() => draw(display.current, displayParams)));
       break;
     }
     case "canvasCoordinates": {
@@ -119,12 +110,8 @@ const updateGUI = () => {
       const controllers = [];
       const f = gui.addFolder("canvasCoordinates");
       controllers.push(f.add(displayParams, "padding", 0, 0.5, 0.01));
-      controllers.push(
-        f.add(displayParams, "orientationY").options(["down", "up"])
-      );
-      controllers.forEach((c) =>
-        c.onChange(() => draw(display.current, displayParams))
-      );
+      controllers.push(f.add(displayParams, "orientationY").options(["down", "up"]));
+      controllers.forEach((c) => c.onChange(() => draw(display.current, displayParams)));
       break;
     }
   }

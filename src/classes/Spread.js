@@ -53,9 +53,7 @@ export class Spread {
             value = distribution(bounds[0] + units * i, { d: dim, i });
             break;
           default:
-            throw new Error(
-              "Anchor type not valid. Choose from (spacing, endpoints)."
-            );
+            throw new Error("Anchor type not valid. Choose from (spacing, endpoints).");
             break;
         }
 

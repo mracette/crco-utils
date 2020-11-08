@@ -19,10 +19,7 @@ export const boundedSin = (
   return (x) =>
     yMin +
     (yMax - yMin) *
-      (0.5 +
-        ((invert ? -1 : 1) *
-          Math.sin(-translateX + (Math.PI * x) / (period / 2))) /
-          2) +
+      (0.5 + ((invert ? -1 : 1) * Math.sin(-translateX + (Math.PI * x) / (period / 2))) / 2) +
     translateY;
 };
 
@@ -46,10 +43,7 @@ export const boundedCos = (
   return (x) =>
     yMin +
     (yMax - yMin) *
-      (0.5 +
-        ((invert ? -1 : 1) *
-          Math.cos(-translateX + (Math.PI * x) / (period / 2))) /
-          2) +
+      (0.5 + ((invert ? -1 : 1) * Math.cos(-translateX + (Math.PI * x) / (period / 2))) / 2) +
     translateY;
 };
 
@@ -58,9 +52,7 @@ export const clamp = (n, min, max) => {
 };
 
 export const normalize = (n, min, max, clamp = false) => {
-  return clamp
-    ? (n - min) / (max - min)
-    : (clamp(n, min, max) - min) / (max - min);
+  return clamp ? (n - min) / (max - min) : (clamp(n, min, max) - min) / (max - min);
 };
 
 export const lerp = (n0, n1, t) => {

@@ -103,16 +103,11 @@ export const regularPolygon = (
   for (let i = 0; i < nPoints; i++) {
     if (twoDim) {
       points[i * nCoords] = cx + size * Math.cos((i * 2 * Math.PI) / nSides);
-      points[i * nCoords + 1] =
-        cy + size * Math.sin((i * 2 * Math.PI) / nSides);
+      points[i * nCoords + 1] = cy + size * Math.sin((i * 2 * Math.PI) / nSides);
     } else {
       points[i * nCoords] = cx + size * Math.cos((i * 2 * Math.PI) / nSides);
-      points[i * nCoords + 1] = rotate
-        ? 0
-        : cy + size * Math.sin((i * 2 * Math.PI) / nSides);
-      points[i * nCoords + 2] = rotate
-        ? cy + size * Math.sin((i * 2 * Math.PI) / nSides)
-        : 0;
+      points[i * nCoords + 1] = rotate ? 0 : cy + size * Math.sin((i * 2 * Math.PI) / nSides);
+      points[i * nCoords + 2] = rotate ? cy + size * Math.sin((i * 2 * Math.PI) / nSides) : 0;
     }
   }
   return points;

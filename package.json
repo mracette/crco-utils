@@ -1,6 +1,6 @@
 {
   "name": "crco-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "creative coding utilities",
   "repository": "https://github.com/mracette/crco-utils",
   "main": "build/crco-utils.js",

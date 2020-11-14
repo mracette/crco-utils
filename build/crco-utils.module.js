@@ -830,7 +830,11 @@ class CanvasCoordinates {
       }
     } else {
       this.baseHeight = height;
-    }
+    } // calculate canvas-unit padding amounts
+
+
+    this.memoizePaddingX();
+    this.memoizePaddingY();
   }
 
 }

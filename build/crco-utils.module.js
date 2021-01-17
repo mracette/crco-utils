@@ -683,7 +683,7 @@ class CanvasCoordinates {
   }
   /**
    * Maps a normalized x-value to a canvas x-value
-   * @param   {object} n
+   * @param   {number} n
    *          A normalized x-value in the range [0, 1]
    */
 
@@ -715,7 +715,7 @@ class CanvasCoordinates {
   }
   /**
    * Maps a normalized y-value to a canvas y-value
-   * @param   {object} n
+   * @param   {number} n
    *          A normalized y-value in the range [0, 1]
    */
 

@@ -37,7 +37,7 @@
   },
   "scripts": {
     "build": "rollup -c --environment BUILD:production",
-    "test": "rollup -c -w --environment BUILD:production &>/dev/null & jest --watch",
+    "test": "rollup -c -w --environment BUILD:production &>/dev/null & jest undefined-padding --watch",
     "watch": "rollup -c -w --environment BUILD:development",
     "get-version": "echo $npm_package_version",
     "npm-commit": "git add .; git commit -m 'published version $(npm run get-version) to npm'; git push",

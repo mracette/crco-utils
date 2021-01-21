@@ -123,6 +123,35 @@ test("offset-y", () => {
   expect(coords.ny(1)).toBe(0);
 });
 
+test("undefined-padding", () => {
+  coords = new crco.CanvasCoordinates({
+    baseWidth: 100,
+    baseHeight: 100,
+    offsetX: -50,
+    offsetY: -50,
+    padding: undefined,
+  });
+  // test offset y
+  expect(coords.ny(-1)).toBe(-50);
+  expect(coords.ny(1)).toBe(50);
+  expect(coords.nx(-1)).toBe(-50);
+  expect(coords.nx(1)).toBe(50);
+});
+
+test("padding-with-offset", () => {
+  coords = new crco.CanvasCoordinates({
+    canvas,
+    offsetX: -50,
+    offsetY: -50,
+    padding: 0.1,
+  });
+  // test offset y
+  expect(coords.ny(-1)).toBe(-40);
+  expect(coords.ny(1)).toBe(40);
+  expect(coords.nx(-1)).toBe(-40);
+  expect(coords.nx(1)).toBe(40);
+});
+
 test("resize", () => {
   coords = new crco.CanvasCoordinates({
     canvas,

@@ -131,7 +131,11 @@ export class CanvasCoordinates {
    */
   memoizePaddingX() {
     if (typeof this.paddingX === "undefined") {
-      this.calculatedPaddingX = this.padding * this.baseWidth;
+      if (typeof this.padding === "undefined") {
+        this.calculatedPaddingX = 0;
+      } else {
+        this.calculatedPaddingX = this.padding * this.baseWidth;
+      }
     } else {
       this.calculatedPaddingX = this.paddingX * this.baseWidth;
     }
@@ -147,7 +151,11 @@ export class CanvasCoordinates {
    */
   memoizePaddingY() {
     if (typeof this.paddingY === "undefined") {
-      this.calculatedPaddingY = this.padding * this.baseWidth;
+      if (typeof this.padding === "undefined") {
+        this.calculatedPaddingY = 0;
+      } else {
+        this.calculatedPaddingY = this.padding * this.baseWidth;
+      }
     } else {
       this.calculatedPaddingY = this.paddingY * this.baseHeight;
     }

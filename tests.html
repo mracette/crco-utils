@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <button id='start'></button>
+
+    <script type="text/javascript" src='./build/crco-utils.min.js'></script>
+    <script>
+
+        const canvas = document.createElement('canvas');
+        document.body.append(canvas);
+        const context = canvas.getContext('2d');
+        context.fillStyle = 'blue';
+        context.fillRect(0, 0, 100, 100);
+
+        crco.canvasToPng(canvas, 'test.png');
+
+    </script>
+
+</body>
+
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "crco-utils",
-  "version": "2.0.0-r11",
+  "version": "2.0.0-r12",
   "description": "",
   "main": "dist/index.js",
   "scripts": {

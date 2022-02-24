@@ -102,9 +102,11 @@ export class Canvas2DGraphics {
     return this.getResolvedValueForStyles(key);
   }
 
-  public applyStyles(styles: Canvas2DStyles): void {
+  public applyStyles(styles?: Canvas2DStyles): void {
     this.assignStylesToContext(this.options.styles!);
-    this.assignStylesToContext(styles);
+    if (styles) {
+      this.assignStylesToContext(styles);
+    }
   }
 
   public rect(
@@ -312,9 +314,7 @@ export class Canvas2DGraphics {
     if (this.getResolvedValueForDrawingOptions("saveAndRestore")) {
       this.context.save();
     }
-    if (options.styles) {
-      this.applyStyles(options.styles);
-    }
+    this.applyStyles(options.styles);
     if (this.getResolvedValueForDrawingOptions("beginPath")) {
       this.context.beginPath();
     }

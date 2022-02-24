@@ -30,86 +30,17 @@ var Canvas2DGraphics = /** @class */ (function () {
             maxTextWidth: undefined,
             saveAndRestore: true,
             stroke: false,
-            styles: undefined,
+            styles: {},
             useNormalCoordinates: false
         };
         this.options = __assign(__assign({}, defaults), options);
     }
-    Canvas2DGraphics.prototype.assignStyleToContext = function (style) {
-        // run font and font size up front, because fontSize must run after font
-        for (var key in style) {
-            if (key === "lineDash") {
-                this.context.setLineDash(style[key]);
-            }
-            if (key === "alpha") {
-                this.context.globalAlpha = style[key];
-            }
-            if (key === "lineWidth" && style.lineWidthIsProportionalTo === "width") {
-                this.context.lineWidth = this.coords.width(style[key]);
-                delete style.lineWidthIsProportionalTo;
-            }
-            if (key === "lineWidth" && style.lineWidthIsProportionalTo === "height") {
-                this.context.lineWidth = this.coords.height(style[key]);
-                delete style.lineWidthIsProportionalTo;
-            }
-            if (!(key in this.context)) {
-                continue;
-            }
-            // @ts-ignore
-            this.context[key] = style[key];
-        }
-        // set font as a combination of related fields
-        var fontSize;
-        if (style.fontSizeIsProportionalTo === "width") {
-            fontSize = this.coords.width(style.fontSize);
-        }
-        else if (style.fontSizeIsProportionalTo === "height") {
-            fontSize = this.coords.height(style.fontSize);
-        }
-        else {
-            // eslint-disable-next-line prefer-destructuring
-            fontSize = style.fontSize;
-        }
-        fontSize = fontSize + "px";
-        if (style.lineHeight) {
-            fontSize = fontSize + "/" + style.lineHeight;
-        }
-        this.context.font = [
-            fontSize,
-            style.fontFamily,
-            style.fontStyle,
-            style.fontWeight,
-            style.fontStretch
-        ].join(" ");
-    };
-    Canvas2DGraphics.prototype.preDrawOps = function (options) {
-        var _a, _b;
-        if (options === void 0) { options = {}; }
-        ((_a = options.saveAndRestore) !== null && _a !== void 0 ? _a : this.options.saveAndRestore) && this.context.save();
-        // apply base styles first
-        this.options.styles && this.applyStyles(this.options.styles);
-        // override with more specific styles
-        options.styles && this.applyStyles(options.styles);
-        ((_b = options.beginPath) !== null && _b !== void 0 ? _b : this.options.beginPath) && this.context.beginPath();
-    };
-    Canvas2DGraphics.prototype.postDrawOps = function (options) {
-        var _a, _b, _c, _d;
-        ((_a = options.closePath) !== null && _a !== void 0 ? _a : this.options.closePath) && this.context.closePath();
-        ((_b = options.fill) !== null && _b !== void 0 ? _b : this.options.fill) && this.context.fill();
-        ((_c = options.stroke) !== null && _c !== void 0 ? _c : this.options.stroke) && this.context.stroke();
-        ((_d = options.saveAndRestore) !== null && _d !== void 0 ? _d : this.options.saveAndRestore) &&
-            this.context.restore();
+    Canvas2DGraphics.prototype.getStyleValue = function (key) {
+        return this.getResolvedValueForStyles(key);
     };
     Canvas2DGraphics.prototype.applyStyles = function (styles) {
-        if (Array.isArray(styles)) {
-            for (var _i = 0, styles_1 = styles; _i < styles_1.length; _i++) {
-                var style = styles_1[_i];
-                this.assignStyleToContext(style);
-            }
-        }
-        else {
-            this.assignStyleToContext(styles);
-        }
+        this.assignStylesToContext(this.options.styles);
+        this.assignStylesToContext(styles);
     };
     Canvas2DGraphics.prototype.rect = function (x, y, width, height, options) {
         if (x === void 0) { x = 0; }
@@ -117,18 +48,22 @@ var Canvas2DGraphics = /** @class */ (function () {
         if (width === void 0) { width = 1; }
         if (height === void 0) { height = 1; }
         if (options === void 0) { options = {}; }
-        var _a = options.useNormalCoordinates, useNormalCoordinates = _a === void 0 ? this.options.useNormalCoordinates : _a;
+        var useNormalCoordinates = this.getResolvedValueForDrawingOptions("useNormalCoordinates", options);
         this.preDrawOps(options);
         var xAdj = useNormalCoordinates ? this.coords.nx(x) : x;
         var yAdj = useNormalCoordinates ? this.coords.ny(y) : y;
-        var widthAdj = useNormalCoordinates ? this.coords.width(width) : width;
-        var heightAdj = useNormalCoordinates ? this.coords.height(height) : height;
+        var widthAdj = useNormalCoordinates
+            ? this.coords.width(width / (this.coords.nxRange[1] - this.coords.nxRange[0]))
+            : width;
+        var heightAdj = useNormalCoordinates
+            ? this.coords.height(height / (this.coords.nyRange[1] - this.coords.nyRange[0]))
+            : height;
         this.context.rect(xAdj, yAdj, widthAdj, heightAdj);
         this.postDrawOps(options);
     };
     Canvas2DGraphics.prototype.lineSegments = function (points, options) {
         if (options === void 0) { options = {}; }
-        var _a = options.useNormalCoordinates, useNormalCoordinates = _a === void 0 ? this.options.useNormalCoordinates : _a;
+        var useNormalCoordinates = this.getResolvedValueForDrawingOptions("useNormalCoordinates", options);
         this.preDrawOps(options);
         for (var i = 0; i < points.length; i++) {
             var x = useNormalCoordinates ? this.coords.nx(points[i][0]) : points[i][0];
@@ -145,7 +80,7 @@ var Canvas2DGraphics = /** @class */ (function () {
     Canvas2DGraphics.prototype.text = function (text, cx, cy, options) {
         var _a;
         if (options === void 0) { options = {}; }
-        var _b = options.useNormalCoordinates, useNormalCoordinates = _b === void 0 ? this.options.useNormalCoordinates : _b;
+        var useNormalCoordinates = this.getResolvedValueForDrawingOptions("useNormalCoordinates", options);
         this.preDrawOps(options);
         this.context.fillText(text, useNormalCoordinates ? this.coords.nx(cx) : cx, useNormalCoordinates ? this.coords.ny(cy) : cy, (_a = options.maxTextWidth) !== null && _a !== void 0 ? _a : this.options.maxTextWidth);
         this.postDrawOps(options);
@@ -157,7 +92,7 @@ var Canvas2DGraphics = /** @class */ (function () {
      */
     Canvas2DGraphics.prototype.circle = function (cx, cy, r, options) {
         if (options === void 0) { options = {}; }
-        var _a = options.useNormalCoordinates, useNormalCoordinates = _a === void 0 ? this.options.useNormalCoordinates : _a;
+        var useNormalCoordinates = this.getResolvedValueForDrawingOptions("useNormalCoordinates", options);
         this.preDrawOps(options);
         this.context.arc(useNormalCoordinates ? this.coords.nx(cx) : cx, useNormalCoordinates ? this.coords.ny(cy) : cy, r, 0, __1.TAU);
         this.postDrawOps(options);
@@ -185,6 +120,92 @@ var Canvas2DGraphics = /** @class */ (function () {
         if (options === void 0) { options = {}; }
         canvas.width = canvas.clientWidth * (options.dpr ? constants_1.DPR : 1);
         canvas.height = canvas.clientHeight * (options.dpr ? constants_1.DPR : 1);
+    };
+    Canvas2DGraphics.prototype.getResolvedValueForDrawingOptions = function (param, options) {
+        return (options && param in options ? options[param] : this.options[param]);
+    };
+    Canvas2DGraphics.prototype.getResolvedValueForStyles = function (param, styles) {
+        var resolved = styles && param in styles ? styles[param] : this.options.styles[param];
+        if (typeof resolved === "function") {
+            return resolved(this.coords);
+        }
+        else {
+            return resolved;
+        }
+    };
+    /**
+     * Creates a CSS style string for 'font' using a combination of related fields.
+     *
+     * Constructing the font string this way allows individual components of the
+     * font style to be changed without needing to keep track of the entire font
+     * string
+     */
+    Canvas2DGraphics.prototype.constructFontString = function (styles) {
+        var fontSize = this.getResolvedValueForStyles("fontSize", styles);
+        var lineHeight = this.getResolvedValueForStyles("lineHeight", styles);
+        var fontStyle = this.getResolvedValueForStyles("fontStyle", styles);
+        var fontFamily = this.getResolvedValueForStyles("fontFamily", styles);
+        var fontWeight = this.getResolvedValueForStyles("fontWeight", styles);
+        var fontStretch = this.getResolvedValueForStyles("fontStretch", styles);
+        var fontSizePx = typeof fontSize === "number" ? "".concat(fontSize, "px") : undefined;
+        if (lineHeight && fontSizePx) {
+            fontSizePx = "".concat(fontSize, " / ").concat(lineHeight, "}");
+        }
+        return [fontSizePx, fontFamily, fontStyle, fontWeight, fontStretch].join(" ");
+    };
+    Canvas2DGraphics.prototype.assignStylesToContext = function (styles) {
+        for (var key in styles) {
+            var resolvedValue = this.getResolvedValueForStyles(key, styles);
+            if (key === "transform") {
+                this.context.setTransform(resolvedValue);
+            }
+            if (key === "scale") {
+                var _a = resolvedValue, x = _a.x, y = _a.y;
+                this.context.scale(x, y);
+            }
+            if (key === "rotation") {
+                this.context.rotate(resolvedValue);
+            }
+            if (key === "translation") {
+                var _b = resolvedValue, x = _b.x, y = _b.y;
+                this.context.translate(x, y);
+            }
+            if (key === "lineDash") {
+                this.context.setLineDash(resolvedValue);
+            }
+            if (key === "alpha") {
+                this.context.globalAlpha = resolvedValue;
+            }
+            // @ts-ignore
+            this.context[key] = this.getResolvedValueForStyles(key, styles);
+        }
+        this.context.font = this.constructFontString(styles);
+    };
+    Canvas2DGraphics.prototype.preDrawOps = function (options) {
+        if (options === void 0) { options = {}; }
+        if (this.getResolvedValueForDrawingOptions("saveAndRestore")) {
+            this.context.save();
+        }
+        if (options.styles) {
+            this.applyStyles(options.styles);
+        }
+        if (this.getResolvedValueForDrawingOptions("beginPath")) {
+            this.context.beginPath();
+        }
+    };
+    Canvas2DGraphics.prototype.postDrawOps = function (options) {
+        if (this.getResolvedValueForDrawingOptions("closePath", options)) {
+            this.context.closePath();
+        }
+        if (this.getResolvedValueForDrawingOptions("fill", options)) {
+            this.context.fill();
+        }
+        if (this.getResolvedValueForDrawingOptions("stroke", options)) {
+            this.context.stroke();
+        }
+        if (this.getResolvedValueForDrawingOptions("saveAndRestore", options)) {
+            this.context.restore();
+        }
     };
     return Canvas2DGraphics;
 }());

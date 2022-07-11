@@ -11,6 +11,10 @@ type ReactiveStyleFunction<T> = (coords: CanvasCoordinates) => T;
 
 type ValueOrReactiveStyleFunction<T> = T | ReactiveStyleFunction<T>;
 
+type RotationWithOrigin = { rotation: number; origin: Vector2 };
+
+type ScaleWithOrigin = { scale: Vector2; origin: Vector2 };
+
 export type Canvas2DStyleValues = {
   /**
    * Directly from the CanvasRenderingContext2D API
@@ -28,8 +32,8 @@ export type Canvas2DStyleValues = {
    * Custom to this library
    */
   transform: DOMMatrixInit;
-  scale: Vector2;
-  rotation: number;
+  scale: Vector2 | ScaleWithOrigin;
+  rotation: number | RotationWithOrigin;
   translation: Vector2;
   /**
    * Font size in pixels
@@ -279,24 +283,59 @@ export class Canvas2DGraphics {
   }
 
   private assignStylesToContext(styles: Canvas2DStyles) {
+    const useNormalCoordinates = this.getResolvedValueForDrawingOptions(
+      "useNormalCoordinates"
+    );
     for (const key in styles) {
       const resolvedValue = this.getResolvedValueForStyles(
         key as keyof Canvas2DStyles,
         styles
       );
+      if (isUndefined(resolvedValue)) {
+        continue;
+      }
       if (key === "transform") {
         this.context.setTransform(resolvedValue as Canvas2DStyleValues["transform"]);
       }
-      if (key === "scale") {
-        const { x, y } = resolvedValue as Canvas2DStyleValues["scale"];
-        this.context.scale(x, y);
-      }
-      if (key === "rotation") {
-        this.context.rotate(resolvedValue as Canvas2DStyleValues["rotation"]);
-      }
       if (key === "translation") {
         const { x, y } = resolvedValue as Canvas2DStyleValues["translation"];
-        this.context.translate(x, y);
+        this.context.translate(
+          useNormalCoordinates ? this.coords.nx(x) : x,
+          useNormalCoordinates ? this.coords.ny(y) : y
+        );
+      }
+      if (key === "rotation") {
+        if (typeof resolvedValue === "number") {
+          this.context.rotate(resolvedValue);
+        } else {
+          const { rotation, origin } = resolvedValue as RotationWithOrigin;
+          const translateX = useNormalCoordinates
+            ? this.coords.nx(origin.x)
+            : origin.x;
+          const translateY = useNormalCoordinates
+            ? this.coords.ny(origin.y)
+            : origin.y;
+          this.context.translate(translateX, translateY);
+          this.context.rotate(rotation);
+          this.context.translate(-translateX, -translateY);
+        }
+      }
+      if (key === "scale") {
+        if ("origin" in (resolvedValue as Canvas2DStyleValues["scale"])) {
+          const { origin, scale } = resolvedValue as ScaleWithOrigin;
+          const translateX = useNormalCoordinates
+            ? this.coords.nx(origin.x)
+            : origin.x;
+          const translateY = useNormalCoordinates
+            ? this.coords.ny(origin.y)
+            : origin.y;
+          this.context.translate(translateX, translateY);
+          this.context.scale(scale.x, scale.y);
+          this.context.translate(-translateX, -translateY);
+        } else {
+          const { x, y } = resolvedValue as Vector2;
+          this.context.scale(x, y);
+        }
       }
       if (key === "lineDash") {
         this.context.setLineDash(resolvedValue as Canvas2DStyleValues["lineDash"]);
@@ -305,7 +344,10 @@ export class Canvas2DGraphics {
         this.context.globalAlpha = resolvedValue as Canvas2DStyleValues["alpha"];
       }
       // @ts-ignore
-      this.context[key] = this.getResolvedValueForStyles(key, styles);
+      if (key in this.context && typeof this.context[key] !== "function") {
+        // @ts-ignore
+        this.context[key] = this.getResolvedValueForStyles(key, styles);
+      }
     }
     this.context.font = this.constructFontString(styles);
   }

@@ -1,9 +1,6 @@
-import { DPR } from "..";
+import { DPR, Vector2 } from "..";
 
-export interface AspectRatio {
-  x: number;
-  y: number;
-}
+export type AspectRatio = Vector2;
 
 export const aspectRatioResize = (
   element: HTMLElement,
@@ -20,8 +17,8 @@ export const aspectRatioResize = (
       const resizeRatio = Math.min(width / x, height / y);
       const currentWidth = element.clientWidth;
       const currentHeight = element.clientHeight;
-      const newWidth = resizeRatio * x;
-      const newHeight = resizeRatio * y;
+      const newWidth = Math.round(resizeRatio * x);
+      const newHeight = Math.round(resizeRatio * y);
       // do not resize if the new size is the same as the current size
       // as it has side effects for canvas elements
       if (newWidth !== currentWidth || newHeight !== currentHeight) {

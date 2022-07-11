@@ -1,5 +1,4 @@
 import { clamp as clampFunction } from "./clamp";
-import { lerp } from "./lerp";
 
 export const normalize = (
   n: number,

@@ -4,8 +4,10 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "dev": "vite serve studio",
+    "build": "rm -rf ./dist/* && tsc && vite build",
     "test": "jest",
-    "build": "rm -rf ./dist/* && tsc"
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
@@ -36,6 +38,7 @@
     "jest": "^27.4.7",
     "prettier": "^2.2.1",
     "ts-jest": "^27.1.3",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.3",
+    "vite": "^3.0.3"
   }
 }

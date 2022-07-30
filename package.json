@@ -1,14 +1,15 @@
 {
   "name": "crco-utils",
-  "version": "2.0.0-r15",
+  "version": "2.0.0-r18",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite serve studio",
-    "build": "rm -rf ./dist/* && tsc && vite build",
+    "build": "rm -rf ./dist/* && tsc -p ./tsconfig.build.json",
     "test": "jest",
     "preview": "vite preview",
-    "lint": "eslint ./src ./studio --fix"
+    "lint": "eslint ./src ./studio --fix",
+    "build-publish": "yarn build && yarn publish"
   },
   "repository": {
     "type": "git",

@@ -1,7 +1,7 @@
-import { deepClone } from "./deepClone";
+import { deepClone } from './deepClone';
 
-test.each([{ a: 1, b: 2 }, [1, 2, 3, null, "a", "b", "c"]])(
-  "deepClone objects",
+test.each([{ a: 1, b: 2 }, [1, 2, 3, null, 'a', 'b', 'c']])(
+  'deepClone objects',
   (item) => {
     const clone = deepClone(item);
     expect(item).toStrictEqual(clone);
@@ -9,7 +9,7 @@ test.each([{ a: 1, b: 2 }, [1, 2, 3, null, "a", "b", "c"]])(
   }
 );
 
-test.each([true, false, null, 1, "string"])("deepClone primitives", (item) => {
+test.each([true, false, null, 1, 'string'])('deepClone primitives', (item) => {
   const clone = deepClone(item);
   expect(item).toStrictEqual(clone);
   expect(item).toBe(clone);

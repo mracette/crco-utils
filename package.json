@@ -7,7 +7,8 @@
     "dev": "vite serve studio",
     "build": "rm -rf ./dist/* && tsc && vite build",
     "test": "jest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint ./src ./studio --fix"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,7 @@
   },
   "homepage": "https://github.com/mracette/crco-utils#readme",
   "devDependencies": {
-    "@mracette/eslint-config": "^0.0.11",
+    "@mracette/eslint-config": "^0.0.12",
     "@types/jest": "^26.0.19",
     "@types/node": "^14.14.20",
     "@typescript-eslint/eslint-plugin": "^4.12.0",

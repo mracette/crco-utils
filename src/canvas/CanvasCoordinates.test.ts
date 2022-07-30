@@ -1,4 +1,4 @@
-import { CanvasCoordinates } from "./CanvasCoordinates";
+import { CanvasCoordinates } from './CanvasCoordinates';
 
 let coords: CanvasCoordinates;
 
@@ -18,7 +18,7 @@ const testYnAndInverse = (coords: CanvasCoordinates, n: number, y: number) => {
   expect(coords.yn(y)).toBe(n);
 };
 
-test("initialization errors", () => {
+test('initialization errors', () => {
   expect(() => {
     new CanvasCoordinates();
   }).toThrow();
@@ -36,8 +36,8 @@ test("initialization errors", () => {
   }).not.toThrow();
 });
 
-describe("padding", () => {
-  test("base padding is proportional to dimensions", () => {
+describe('padding', () => {
+  test('base padding is proportional to dimensions', () => {
     canvas = { width: 100, height: 200 } as HTMLCanvasElement;
     coords = new CanvasCoordinates({
       canvas,
@@ -49,7 +49,7 @@ describe("padding", () => {
     testYnAndInverse(coords, 1, 180);
   });
 
-  test("x and y padding are equal when equalPadding is true", () => {
+  test('x and y padding are equal when equalPadding is true', () => {
     canvas = { width: 100, height: 200 } as HTMLCanvasElement;
     coords = new CanvasCoordinates({
       canvas,
@@ -68,7 +68,7 @@ describe("padding", () => {
     expect(canvas.width - coords.nx(1)).toEqual(canvas.height - coords.ny(1));
   });
 
-  test("separate padding for x and y", () => {
+  test('separate padding for x and y', () => {
     canvas = { width: 100, height: 200 } as HTMLCanvasElement;
     coords = new CanvasCoordinates({
       canvas,
@@ -82,8 +82,8 @@ describe("padding", () => {
   });
 });
 
-describe("width and height", () => {
-  test("width", () => {
+describe('width and height', () => {
+  test('width', () => {
     canvas = { width: 100, height: 100 } as HTMLCanvasElement;
     coords = new CanvasCoordinates({
       canvas
@@ -100,7 +100,7 @@ describe("width and height", () => {
     expect(coords.width(2)).toBe(200);
   });
 
-  test("height", () => {
+  test('height', () => {
     canvas = { width: 100, height: 100 } as HTMLCanvasElement;
     coords = new CanvasCoordinates({
       canvas

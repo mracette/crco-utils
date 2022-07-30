@@ -1,6 +1,6 @@
 export enum SequenceAlignment {
-  SpaceBetween = "space-between",
-  SpaceAround = "space-around"
+  SpaceBetween = 'space-between',
+  SpaceAround = 'space-around'
 }
 
 export interface SequenceOptions {

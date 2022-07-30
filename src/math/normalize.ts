@@ -1,4 +1,4 @@
-import { clamp as clampFunction } from "./clamp";
+import { clamp as clampFunction } from './clamp';
 
 export const normalize = (
   n: number,

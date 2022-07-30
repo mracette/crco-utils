@@ -1,11 +1,11 @@
-import { isSomeUndefined } from "../js/isSomeUndefined";
-import { isUndefined } from "../js/isUndefined";
-import { lerp } from "../math/lerp";
-import { normalize } from "../math/normalize";
+import { isSomeUndefined } from '../js/isSomeUndefined';
+import { isUndefined } from '../js/isUndefined';
+import { lerp } from '../math/lerp';
+import { normalize } from '../math/normalize';
 
 enum YAxisOrientation {
-  Up = "up",
-  Down = "down"
+  Up = 'up',
+  Down = 'down'
 }
 
 export interface CanvasCoordinates {
@@ -33,7 +33,7 @@ export class CanvasCoordinates {
       isSomeUndefined(opts.baseWidth, opts.baseHeight)
     ) {
       throw new Error(
-        "Invalid options. A canvas element must be supplied if baseHeight or baseWidth are not defined."
+        'Invalid options. A canvas element must be supplied if baseHeight or baseWidth are not defined.'
       );
     }
 
@@ -41,7 +41,7 @@ export class CanvasCoordinates {
       nxRange: [-1, 1],
       nyRange: [-1, 1],
       clamp: false,
-      orientationY: "down",
+      orientationY: 'down',
       equalPadding: false
     };
 

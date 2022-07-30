@@ -1,2 +1,2 @@
 export const isEveryUndefined = (...values: any[]) =>
-  values.every((value) => typeof value === "undefined");
+  values.every((value) => typeof value === 'undefined');

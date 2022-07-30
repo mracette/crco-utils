@@ -4,9 +4,9 @@ import {
   DrawingOptions,
   lerp,
   TAU
-} from "..";
+} from '..';
 
-declare module ".." {
+declare module '..' {
   interface DrawingOptions {
     roughness?: number;
   }

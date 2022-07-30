@@ -1,17 +1,17 @@
-import "./styles.css";
-import "./utilities.css";
-import { Canvas2DGraphics, Canvas2DGraphicsOptions, TAU, Vector2 } from "../src";
-import { Canvas2DGraphicsRough } from "../src/canvas/Canvas2DGraphicsRough";
+import './styles.css';
+import './utilities.css';
+import { Canvas2DGraphics, Canvas2DGraphicsOptions, TAU, Vector2 } from '../src';
+import { Canvas2DGraphicsRough } from '../src/canvas/Canvas2DGraphicsRough';
 
 const ORIGIN = new Vector2(0, 0);
 
 const OPTIONS: Canvas2DGraphicsOptions = {
   useNormalCoordinates: true,
   stroke: true,
-  scalarNormalization: "width",
+  scalarNormalization: 'width',
   styles: {
     lineWidth: (coords) => coords.width(0.01),
-    fillStyle: "lightblue"
+    fillStyle: 'lightblue'
   },
   saveAndRestore: false
 };
@@ -54,55 +54,55 @@ const drawCurveThroughPoints = (graphics: Canvas2DGraphics) => {
   ]);
 };
 
-const ROOT_ELEMENT = document.getElementById("root") as HTMLDivElement;
+const ROOT_ELEMENT = document.getElementById('root') as HTMLDivElement;
 
 const DRAWINGS = [
   {
-    title: "Circle",
-    canvas: document.createElement("canvas"),
+    title: 'Circle',
+    canvas: document.createElement('canvas'),
     drawFunction: drawCircle
   },
   {
-    title: "Square",
-    canvas: document.createElement("canvas"),
+    title: 'Square',
+    canvas: document.createElement('canvas'),
     drawFunction: drawSquare
   },
   {
-    title: "Line Segments",
-    canvas: document.createElement("canvas"),
+    title: 'Line Segments',
+    canvas: document.createElement('canvas'),
     drawFunction: drawLineSegments
   },
   {
-    title: "Diamond",
-    canvas: document.createElement("canvas"),
+    title: 'Diamond',
+    canvas: document.createElement('canvas'),
     drawFunction: drawDiamond
   },
   {
-    title: "Curve Through Points",
-    canvas: document.createElement("canvas"),
+    title: 'Curve Through Points',
+    canvas: document.createElement('canvas'),
     drawFunction: drawCurveThroughPoints
   },
   {
-    title: "Line Segments (rough)",
-    canvas: document.createElement("canvas"),
+    title: 'Line Segments (rough)',
+    canvas: document.createElement('canvas'),
     drawFunction: drawLineSegments,
     rough: true
   },
   {
-    title: "Circle (rough)",
-    canvas: document.createElement("canvas"),
+    title: 'Circle (rough)',
+    canvas: document.createElement('canvas'),
     drawFunction: drawCircle,
     rough: true
   },
   {
-    title: "Square (rough)",
-    canvas: document.createElement("canvas"),
+    title: 'Square (rough)',
+    canvas: document.createElement('canvas'),
     drawFunction: drawSquare,
     rough: true
   },
   {
-    title: "Diamond (rough)",
-    canvas: document.createElement("canvas"),
+    title: 'Diamond (rough)',
+    canvas: document.createElement('canvas'),
     drawFunction: drawDiamond,
     rough: true
   }
@@ -111,7 +111,7 @@ const DRAWINGS = [
 export const init = () => {
   DRAWINGS.map(({ canvas, drawFunction, title, rough = false }) => {
     ROOT_ELEMENT.append(canvas);
-    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
     const graphics = rough
       ? new Canvas2DGraphicsRough(context, OPTIONS)
       : new Canvas2DGraphics(context, OPTIONS);

@@ -1,4 +1,4 @@
-import { DPR, Vector2 } from "..";
+import { DPR, Vector2 } from '..';
 
 export type AspectRatio = Vector2;
 
@@ -7,7 +7,7 @@ export const aspectRatioResize = (
   aspect: AspectRatio
 ): ResizeObserver | null => {
   if (!element.parentElement) {
-    console.warn("aspectRatioResize: element has no parent and cannot be resized");
+    console.warn('aspectRatioResize: element has no parent and cannot be resized');
     return null;
   } else {
     const parent = element.parentElement;
@@ -26,8 +26,8 @@ export const aspectRatioResize = (
           element.width = newWidth * DPR;
           element.height = newHeight * DPR;
         }
-        element.style.width = newWidth + "px";
-        element.style.height = newHeight + "px";
+        element.style.width = newWidth + 'px';
+        element.style.height = newHeight + 'px';
       }
     };
     const observer = new ResizeObserver(resizeToAspectRatio);

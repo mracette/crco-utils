@@ -1,10 +1,10 @@
-import { CanvasCoordinates, isUndefined, TAU } from "..";
-import { DPR } from "../js/constants";
-import { Vector2 } from "../math/Vector2";
+import { CanvasCoordinates, isUndefined, TAU } from '..';
+import { DPR } from '../js/constants';
+import { Vector2 } from '../math/Vector2';
 
 export enum CanvasDimensions {
-  Width = "width",
-  Height = "height"
+  Width = 'width',
+  Height = 'height'
 }
 
 type ReactiveStyleFunction<T> = (coords: CanvasCoordinates) => T;
@@ -23,15 +23,15 @@ export type Canvas2DStyleValues = {
   /**
    * Directly from the CanvasRenderingCntext2D API
    */
-  fillStyle: CanvasRenderingContext2D["fillStyle"];
-  lineWidth: CanvasRenderingContext2D["lineWidth"];
-  lineCap: CanvasRenderingContext2D["lineCap"];
-  lineJoin: CanvasRenderingContext2D["lineJoin"];
-  lineDashOffset: CanvasRenderingContext2D["lineDashOffset"];
-  miterLimit: CanvasRenderingContext2D["miterLimit"];
-  strokeStyle: CanvasRenderingContext2D["strokeStyle"];
-  textAlign: CanvasRenderingContext2D["textAlign"];
-  textBaseline: CanvasRenderingContext2D["textBaseline"];
+  fillStyle: CanvasRenderingContext2D['fillStyle'];
+  lineWidth: CanvasRenderingContext2D['lineWidth'];
+  lineCap: CanvasRenderingContext2D['lineCap'];
+  lineJoin: CanvasRenderingContext2D['lineJoin'];
+  lineDashOffset: CanvasRenderingContext2D['lineDashOffset'];
+  miterLimit: CanvasRenderingContext2D['miterLimit'];
+  strokeStyle: CanvasRenderingContext2D['strokeStyle'];
+  textAlign: CanvasRenderingContext2D['textAlign'];
+  textBaseline: CanvasRenderingContext2D['textBaseline'];
   /**
    * Custom to this library
    */
@@ -50,12 +50,12 @@ export type Canvas2DStyleValues = {
   /**
    * Directly from the CSSStyleDeclaration
    */
-  fontFamily: CSSStyleDeclaration["fontFamily"];
-  fontStyle: CSSStyleDeclaration["fontStyle"];
-  fontWeight: CSSStyleDeclaration["fontWeight"];
-  fontStretch: CSSStyleDeclaration["fontStretch"];
-  fontVariant: CSSStyleDeclaration["fontVariant"];
-  lineHeight: CSSStyleDeclaration["lineHeight"];
+  fontFamily: CSSStyleDeclaration['fontFamily'];
+  fontStyle: CSSStyleDeclaration['fontStyle'];
+  fontWeight: CSSStyleDeclaration['fontWeight'];
+  fontStretch: CSSStyleDeclaration['fontStretch'];
+  fontVariant: CSSStyleDeclaration['fontVariant'];
+  lineHeight: CSSStyleDeclaration['lineHeight'];
 };
 
 export type Canvas2DStyles = Partial<{
@@ -82,7 +82,7 @@ export interface DrawingOptions {
   /** @defaultValue false */
   useNormalCoordinates?: boolean;
   /** @defaultValue false */
-  scalarNormalization?: "width" | "height" | false;
+  scalarNormalization?: 'width' | 'height' | false;
 }
 
 export interface InitializationOptions {
@@ -96,7 +96,7 @@ export interface Canvas2DGraphicsOptions
 export interface Canvas2DGraphics {
   context: CanvasRenderingContext2D;
   coords: CanvasCoordinates;
-  options: Omit<DrawingOptions, "coords">;
+  options: Omit<DrawingOptions, 'coords'>;
 }
 
 export class Canvas2DGraphics {
@@ -206,7 +206,7 @@ export class Canvas2DGraphics {
       text,
       this.resolveXValue(cx, options),
       this.resolveYValue(cy, options),
-      this.resolveOptions("maxTextWidth", options)
+      this.resolveOptions('maxTextWidth', options)
     );
     this.postDrawOps(options);
   }
@@ -268,7 +268,7 @@ export class Canvas2DGraphics {
 
   protected resolveXValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions(
-      "useNormalCoordinates",
+      'useNormalCoordinates',
       options
     );
     return useNormalCoordinates ? this.coords.nx(value) : value;
@@ -276,18 +276,18 @@ export class Canvas2DGraphics {
 
   protected resolveYValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions(
-      "useNormalCoordinates",
+      'useNormalCoordinates',
       options
     );
     return useNormalCoordinates ? this.coords.ny(value) : value;
   }
 
   protected resolveScalarValue(value: number, options: DrawingOptions = {}) {
-    const scalarNormalization = this.resolveOptions("scalarNormalization", options);
-    if (scalarNormalization === "width") {
+    const scalarNormalization = this.resolveOptions('scalarNormalization', options);
+    if (scalarNormalization === 'width') {
       return this.coords.width(value);
     }
-    if (scalarNormalization === "height") {
+    if (scalarNormalization === 'height') {
       return this.coords.height(value);
     }
     return value;
@@ -308,7 +308,7 @@ export class Canvas2DGraphics {
   ): Canvas2DStyleValues[T] {
     const resolved =
       styles && param in styles ? styles[param] : this.options.styles![param];
-    if (typeof resolved === "function") {
+    if (typeof resolved === 'function') {
       return resolved(this.coords) as Canvas2DStyleValues[T];
     } else {
       return resolved as Canvas2DStyleValues[T];
@@ -324,21 +324,21 @@ export class Canvas2DGraphics {
    */
   protected constructFontString(
     styles: Canvas2DStyles
-  ): CSSStyleDeclaration["font"] {
-    const fontSize = this.resolveStyle("fontSize", styles);
-    const lineHeight = this.resolveStyle("lineHeight", styles);
-    const fontStyle = this.resolveStyle("fontStyle", styles);
-    const fontFamily = this.resolveStyle("fontFamily", styles);
-    const fontWeight = this.resolveStyle("fontWeight", styles);
-    const fontStretch = this.resolveStyle("fontStretch", styles);
+  ): CSSStyleDeclaration['font'] {
+    const fontSize = this.resolveStyle('fontSize', styles);
+    const lineHeight = this.resolveStyle('lineHeight', styles);
+    const fontStyle = this.resolveStyle('fontStyle', styles);
+    const fontFamily = this.resolveStyle('fontFamily', styles);
+    const fontWeight = this.resolveStyle('fontWeight', styles);
+    const fontStretch = this.resolveStyle('fontStretch', styles);
 
-    let fontSizePx = typeof fontSize === "number" ? `${fontSize}px` : undefined;
+    let fontSizePx = typeof fontSize === 'number' ? `${fontSize}px` : undefined;
 
     if (lineHeight && fontSizePx) {
       fontSizePx = `${fontSize} / ${lineHeight}}`;
     }
 
-    return [fontSizePx, fontFamily, fontStyle, fontWeight, fontStretch].join(" ");
+    return [fontSizePx, fontFamily, fontStyle, fontWeight, fontStretch].join(' ');
   }
 
   protected assignStylesToContext(styles: Canvas2DStyles) {
@@ -347,15 +347,15 @@ export class Canvas2DGraphics {
       if (isUndefined(resolvedStyle)) {
         continue;
       }
-      if (key === "transform") {
-        this.context.setTransform(resolvedStyle as Canvas2DStyleValues["transform"]);
+      if (key === 'transform') {
+        this.context.setTransform(resolvedStyle as Canvas2DStyleValues['transform']);
       }
-      if (key === "translation") {
-        const { x, y } = resolvedStyle as Canvas2DStyleValues["translation"];
+      if (key === 'translation') {
+        const { x, y } = resolvedStyle as Canvas2DStyleValues['translation'];
         this.context.translate(this.resolveXValue(x), this.resolveYValue(y));
       }
-      if (key === "rotation") {
-        if (typeof resolvedStyle === "number") {
+      if (key === 'rotation') {
+        if (typeof resolvedStyle === 'number') {
           this.context.rotate(resolvedStyle);
         } else {
           const { rotation, origin } = resolvedStyle as RotationWithOrigin;
@@ -366,8 +366,8 @@ export class Canvas2DGraphics {
           this.context.translate(-translateX, -translateY);
         }
       }
-      if (key === "scale") {
-        if ("origin" in (resolvedStyle as Canvas2DStyleValues["scale"])) {
+      if (key === 'scale') {
+        if ('origin' in (resolvedStyle as Canvas2DStyleValues['scale'])) {
           const {
             origin,
             scale,
@@ -387,14 +387,14 @@ export class Canvas2DGraphics {
           this.context.scale(x, y);
         }
       }
-      if (key === "lineDash") {
-        this.context.setLineDash(resolvedStyle as Canvas2DStyleValues["lineDash"]);
+      if (key === 'lineDash') {
+        this.context.setLineDash(resolvedStyle as Canvas2DStyleValues['lineDash']);
       }
-      if (key === "alpha") {
-        this.context.globalAlpha = resolvedStyle as Canvas2DStyleValues["alpha"];
+      if (key === 'alpha') {
+        this.context.globalAlpha = resolvedStyle as Canvas2DStyleValues['alpha'];
       }
       // @ts-ignore
-      if (key in this.context && typeof this.context[key] !== "function") {
+      if (key in this.context && typeof this.context[key] !== 'function') {
         // @ts-ignore
         this.context[key] = this.resolveStyle(key, styles);
       }
@@ -403,26 +403,26 @@ export class Canvas2DGraphics {
   }
 
   protected preDrawOps(options: DrawingOptions = {}) {
-    if (this.resolveOptions("saveAndRestore", options)) {
+    if (this.resolveOptions('saveAndRestore', options)) {
       this.context.save();
     }
     this.applyStyles(options.styles);
-    if (this.resolveOptions("beginPath", options)) {
+    if (this.resolveOptions('beginPath', options)) {
       this.context.beginPath();
     }
   }
 
   protected postDrawOps(options: DrawingOptions) {
-    if (this.resolveOptions("closePath", options)) {
+    if (this.resolveOptions('closePath', options)) {
       this.context.closePath();
     }
-    if (this.resolveOptions("fill", options)) {
+    if (this.resolveOptions('fill', options)) {
       this.context.fill();
     }
-    if (this.resolveOptions("stroke", options)) {
+    if (this.resolveOptions('stroke', options)) {
       this.context.stroke();
     }
-    if (this.resolveOptions("saveAndRestore", options)) {
+    if (this.resolveOptions('saveAndRestore', options)) {
       this.context.restore();
     }
   }

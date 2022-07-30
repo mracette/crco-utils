@@ -1,9 +1,14 @@
 import './styles.css';
 import './utilities.css';
+import { drawCircle } from './draw/circle';
+import { drawCurve } from './draw/curve';
+import { drawDiamond } from './draw/diamond';
+import { drawLineSegments } from './draw/lineSegments';
+import { drawPolygon } from './draw/polygon';
+import { drawSquare } from './draw/square';
+import { drawStar } from './draw/star';
 import { Canvas2DGraphics, Canvas2DGraphicsOptions, TAU, Vector2 } from '../src';
 import { Canvas2DGraphicsRough } from '../src/canvas/Canvas2DGraphicsRough';
-
-const ORIGIN = new Vector2(0, 0);
 
 const OPTIONS: Canvas2DGraphicsOptions = {
   useNormalCoordinates: true,
@@ -14,44 +19,6 @@ const OPTIONS: Canvas2DGraphicsOptions = {
     fillStyle: 'lightblue'
   },
   saveAndRestore: false
-};
-
-const drawCircle = (graphics: Canvas2DGraphics) => {
-  graphics.circle(0, 0, 0.25, { fill: true });
-};
-
-const drawSquare = (graphics: Canvas2DGraphics) => {
-  graphics.rect(-0.5, -0.5, 0.5, 0.5);
-};
-
-const drawDiamond = (graphics: Canvas2DGraphics) => {
-  graphics.rect(-0.5, -0.5, 0.5, 0.5, {
-    styles: {
-      scale: { origin: ORIGIN, scale: new Vector2(0.5, 1), constantLineWidth: true },
-      rotation: { origin: ORIGIN, rotation: TAU / 8 }
-    }
-  });
-};
-
-const drawLineSegments = (graphics: Canvas2DGraphics) => {
-  graphics.lineSegments([
-    [-0.5, -0.5],
-    [0.5, -0.5],
-    [-0.5, 0.5],
-    [0.5, 0.5]
-  ]);
-};
-
-const drawCurveThroughPoints = (graphics: Canvas2DGraphics) => {
-  graphics.curveThroughPoints([
-    [-0.5, -0.5],
-    [0, -0.5],
-    [0.5, -0.5],
-    [0, 0],
-    [-0.5, 0.5],
-    [0, 0.5],
-    [0.5, 0.5]
-  ]);
 };
 
 const ROOT_ELEMENT = document.getElementById('root') as HTMLDivElement;
@@ -78,9 +45,19 @@ const DRAWINGS = [
     drawFunction: drawDiamond
   },
   {
+    title: 'Star',
+    canvas: document.createElement('canvas'),
+    drawFunction: drawStar
+  },
+  {
+    title: 'Polygon',
+    canvas: document.createElement('canvas'),
+    drawFunction: drawPolygon
+  },
+  {
     title: 'Curve Through Points',
     canvas: document.createElement('canvas'),
-    drawFunction: drawCurveThroughPoints
+    drawFunction: drawCurve
   },
   {
     title: 'Line Segments (rough)',
@@ -104,6 +81,18 @@ const DRAWINGS = [
     title: 'Diamond (rough)',
     canvas: document.createElement('canvas'),
     drawFunction: drawDiamond,
+    rough: true
+  },
+  {
+    title: 'Star (rough)',
+    canvas: document.createElement('canvas'),
+    drawFunction: drawStar,
+    rough: true
+  },
+  {
+    title: 'Polygon (rough)',
+    canvas: document.createElement('canvas'),
+    drawFunction: drawPolygon,
     rough: true
   }
 ];

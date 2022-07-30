@@ -27,15 +27,14 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
 
   public lineSegments(points: number[][], options: DrawingOptions = {}) {
     const numSegments = points.length - 1;
-    // super.lineSegments(points, options);
-    for (let i = 0; i < numSegments; i++) {
-      const p0 = points[i];
-      const p1 = points[i + 1];
-      const length = Math.sqrt((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2);
-      const roughnessAdj = this.options.roughness! * length;
-      // two rough lines for each line
-      for (let j = 0; j < 2; j++) {
-        const points = [];
+    // two outlines for each set of points
+    for (let j = 0; j < 2; j++) {
+      const roughPoints = [];
+      for (let i = 0; i < numSegments; i++) {
+        const p0 = points[i];
+        const p1 = points[i + 1];
+        const length = Math.sqrt((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2);
+        const roughnessAdj = this.options.roughness! * length;
         // four rough points for each rough line
         for (let k = 0; k < 4; k++) {
           const randomRadius = Math.random() * roughnessAdj;
@@ -62,9 +61,9 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
             x = p1[0] + randomX;
             y = p1[1] + randomY;
           }
-          points.push([x, y]);
+          roughPoints.push([x, y]);
         }
-        this.curveThroughPoints(points, options);
+        this.curveThroughPoints(roughPoints, options);
       }
     }
   }
@@ -107,13 +106,5 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
       useNormalCoordinates: false,
       saveAndRestore: true
     });
-    // const points = [
-    //   [x, y],
-    //   [x + width, y],
-    //   [x + width, y + height],
-    //   [x, y + height],
-    //   [x, y]
-    // ];
-    // this.lineSegments(points, options);
   }
 }

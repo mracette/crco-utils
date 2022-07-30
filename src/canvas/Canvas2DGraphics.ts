@@ -13,7 +13,11 @@ type ValueOrReactiveStyleFunction<T> = T | ReactiveStyleFunction<T>;
 
 type RotationWithOrigin = { rotation: number; origin: Vector2 };
 
-type ScaleWithOrigin = { scale: Vector2; origin: Vector2 };
+type ScaleWithOrigin = {
+  scale: Vector2;
+  origin: Vector2;
+  constantLineWidth?: boolean;
+};
 
 export type Canvas2DStyleValues = {
   /**
@@ -85,6 +89,10 @@ export interface InitializationOptions {
   coords?: CanvasCoordinates;
 }
 
+export interface Canvas2DGraphicsOptions
+  extends DrawingOptions,
+    InitializationOptions {}
+
 export interface Canvas2DGraphics {
   context: CanvasRenderingContext2D;
   coords: CanvasCoordinates;
@@ -97,7 +105,7 @@ export class Canvas2DGraphics {
     /**
      * @defaultValue options.beginPath = true
      */
-    options: DrawingOptions & InitializationOptions = {}
+    options: Canvas2DGraphicsOptions = {}
   ) {
     this.context = context;
     this.coords =
@@ -121,7 +129,7 @@ export class Canvas2DGraphics {
   public getStyleValue<T extends keyof Canvas2DStyleValues>(
     key: T
   ): Canvas2DStyleValues[T] {
-    return this.resolveValueForStyles(key);
+    return this.resolveStyle(key);
   }
 
   public applyStyles(styles?: Canvas2DStyles): void {
@@ -138,34 +146,20 @@ export class Canvas2DGraphics {
     height = 1,
     options: DrawingOptions = {}
   ): void {
-    const useNormalCoordinates = this.resolveValueForDrawingOptions(
-      "useNormalCoordinates",
-      options
-    );
     this.preDrawOps(options);
-    const xAdj = useNormalCoordinates ? this.coords.nx(x) : x;
-    const yAdj = useNormalCoordinates ? this.coords.ny(y) : y;
-    const widthAdj = useNormalCoordinates
-      ? this.coords.width(width / (this.coords.nxRange[1] - this.coords.nxRange[0]))
-      : width;
-    const heightAdj = useNormalCoordinates
-      ? this.coords.height(
-          height / (this.coords.nyRange[1] - this.coords.nyRange[0])
-        )
-      : height;
+    const xAdj = this.resolveXValue(x, options);
+    const yAdj = this.resolveYValue(y, options);
+    const widthAdj = this.resolveScalarValue(width, options);
+    const heightAdj = this.resolveScalarValue(height, options);
     this.context.rect(xAdj, yAdj, widthAdj, heightAdj);
     this.postDrawOps(options);
   }
 
   public lineSegments(points: number[][], options: DrawingOptions = {}): void {
-    const useNormalCoordinates = this.resolveValueForDrawingOptions(
-      "useNormalCoordinates",
-      options
-    );
     this.preDrawOps(options);
     for (let i = 0; i < points.length; i++) {
-      const x = useNormalCoordinates ? this.coords.nx(points[i][0]) : points[i][0];
-      const y = useNormalCoordinates ? this.coords.ny(points[i][1]) : points[i][1];
+      const x = this.resolveXValue(points[i][0], options);
+      const y = this.resolveYValue(points[i][1], options);
       if (i === 0) {
         this.context.moveTo(x, y);
       } else {
@@ -181,16 +175,12 @@ export class Canvas2DGraphics {
     cy: number,
     options: DrawingOptions = {}
   ): void {
-    const useNormalCoordinates = this.resolveValueForDrawingOptions(
-      "useNormalCoordinates",
-      options
-    );
     this.preDrawOps(options);
     this.context.fillText(
       text,
-      useNormalCoordinates ? this.coords.nx(cx) : cx,
-      useNormalCoordinates ? this.coords.ny(cy) : cy,
-      options.maxTextWidth ?? this.options.maxTextWidth
+      this.resolveXValue(cx, options),
+      this.resolveYValue(cy, options),
+      this.resolveOptions("maxTextWidth", options)
     );
     this.postDrawOps(options);
   }
@@ -251,7 +241,7 @@ export class Canvas2DGraphics {
   }
 
   private resolveXValue(value: number, options: DrawingOptions = {}) {
-    const useNormalCoordinates = this.resolveValueForDrawingOptions(
+    const useNormalCoordinates = this.resolveOptions(
       "useNormalCoordinates",
       options
     );
@@ -259,7 +249,7 @@ export class Canvas2DGraphics {
   }
 
   private resolveYValue(value: number, options: DrawingOptions = {}) {
-    const useNormalCoordinates = this.resolveValueForDrawingOptions(
+    const useNormalCoordinates = this.resolveOptions(
       "useNormalCoordinates",
       options
     );
@@ -267,10 +257,7 @@ export class Canvas2DGraphics {
   }
 
   private resolveScalarValue(value: number, options: DrawingOptions = {}) {
-    const scalarNormalization = this.resolveValueForDrawingOptions(
-      "scalarNormalization",
-      options
-    );
+    const scalarNormalization = this.resolveOptions("scalarNormalization", options);
     if (scalarNormalization === "width") {
       return this.coords.width(value);
     }
@@ -280,7 +267,7 @@ export class Canvas2DGraphics {
     return value;
   }
 
-  private resolveValueForDrawingOptions<T extends keyof DrawingOptions>(
+  private resolveOptions<T extends keyof DrawingOptions>(
     param: T,
     options?: DrawingOptions
   ): DrawingOptions[T] {
@@ -289,7 +276,7 @@ export class Canvas2DGraphics {
     ) as DrawingOptions[T];
   }
 
-  private resolveValueForStyles<T extends keyof Canvas2DStyles>(
+  private resolveStyle<T extends keyof Canvas2DStyles>(
     param: T,
     styles?: Canvas2DStyles
   ): Canvas2DStyleValues[T] {
@@ -310,12 +297,12 @@ export class Canvas2DGraphics {
    * string
    */
   private constructFontString(styles: Canvas2DStyles): CSSStyleDeclaration["font"] {
-    const fontSize = this.resolveValueForStyles("fontSize", styles);
-    const lineHeight = this.resolveValueForStyles("lineHeight", styles);
-    const fontStyle = this.resolveValueForStyles("fontStyle", styles);
-    const fontFamily = this.resolveValueForStyles("fontFamily", styles);
-    const fontWeight = this.resolveValueForStyles("fontWeight", styles);
-    const fontStretch = this.resolveValueForStyles("fontStretch", styles);
+    const fontSize = this.resolveStyle("fontSize", styles);
+    const lineHeight = this.resolveStyle("lineHeight", styles);
+    const fontStyle = this.resolveStyle("fontStyle", styles);
+    const fontFamily = this.resolveStyle("fontFamily", styles);
+    const fontWeight = this.resolveStyle("fontWeight", styles);
+    const fontStretch = this.resolveStyle("fontStretch", styles);
 
     let fontSizePx = typeof fontSize === "number" ? `${fontSize}px` : undefined;
 
@@ -327,96 +314,87 @@ export class Canvas2DGraphics {
   }
 
   private assignStylesToContext(styles: Canvas2DStyles) {
-    const useNormalCoordinates = this.resolveValueForDrawingOptions(
-      "useNormalCoordinates"
-    );
     for (const key in styles) {
-      const resolvedValue = this.resolveValueForStyles(
-        key as keyof Canvas2DStyles,
-        styles
-      );
-      if (isUndefined(resolvedValue)) {
+      const resolvedStyle = this.resolveStyle(key as keyof Canvas2DStyles, styles);
+      if (isUndefined(resolvedStyle)) {
         continue;
       }
       if (key === "transform") {
-        this.context.setTransform(resolvedValue as Canvas2DStyleValues["transform"]);
+        this.context.setTransform(resolvedStyle as Canvas2DStyleValues["transform"]);
       }
       if (key === "translation") {
-        const { x, y } = resolvedValue as Canvas2DStyleValues["translation"];
-        this.context.translate(
-          useNormalCoordinates ? this.coords.nx(x) : x,
-          useNormalCoordinates ? this.coords.ny(y) : y
-        );
+        const { x, y } = resolvedStyle as Canvas2DStyleValues["translation"];
+        this.context.translate(this.resolveXValue(x), this.resolveYValue(y));
       }
       if (key === "rotation") {
-        if (typeof resolvedValue === "number") {
-          this.context.rotate(resolvedValue);
+        if (typeof resolvedStyle === "number") {
+          this.context.rotate(resolvedStyle);
         } else {
-          const { rotation, origin } = resolvedValue as RotationWithOrigin;
-          const translateX = useNormalCoordinates
-            ? this.coords.nx(origin.x)
-            : origin.x;
-          const translateY = useNormalCoordinates
-            ? this.coords.ny(origin.y)
-            : origin.y;
+          const { rotation, origin } = resolvedStyle as RotationWithOrigin;
+          const translateX = this.resolveXValue(origin.x);
+          const translateY = this.resolveYValue(origin.y);
           this.context.translate(translateX, translateY);
           this.context.rotate(rotation);
           this.context.translate(-translateX, -translateY);
         }
       }
       if (key === "scale") {
-        if ("origin" in (resolvedValue as Canvas2DStyleValues["scale"])) {
-          const { origin, scale } = resolvedValue as ScaleWithOrigin;
-          const translateX = useNormalCoordinates
-            ? this.coords.nx(origin.x)
-            : origin.x;
-          const translateY = useNormalCoordinates
-            ? this.coords.ny(origin.y)
-            : origin.y;
+        if ("origin" in (resolvedStyle as Canvas2DStyleValues["scale"])) {
+          const {
+            origin,
+            scale,
+            constantLineWidth = false
+          } = resolvedStyle as ScaleWithOrigin;
+          const translateX = this.resolveXValue(origin.x);
+          const translateY = this.resolveYValue(origin.y);
           this.context.translate(translateX, translateY);
           this.context.scale(scale.x, scale.y);
           this.context.translate(-translateX, -translateY);
+          if (constantLineWidth) {
+            this.context.lineWidth =
+              this.context.lineWidth * (1 / ((scale.x + scale.y) / 2));
+          }
         } else {
-          const { x, y } = resolvedValue as Vector2;
+          const { x, y } = resolvedStyle as Vector2;
           this.context.scale(x, y);
         }
       }
       if (key === "lineDash") {
-        this.context.setLineDash(resolvedValue as Canvas2DStyleValues["lineDash"]);
+        this.context.setLineDash(resolvedStyle as Canvas2DStyleValues["lineDash"]);
       }
       if (key === "alpha") {
-        this.context.globalAlpha = resolvedValue as Canvas2DStyleValues["alpha"];
+        this.context.globalAlpha = resolvedStyle as Canvas2DStyleValues["alpha"];
       }
       // @ts-ignore
       if (key in this.context && typeof this.context[key] !== "function") {
         // @ts-ignore
-        this.context[key] = this.resolveValueForStyles(key, styles);
+        this.context[key] = this.resolveStyle(key, styles);
       }
     }
     this.context.font = this.constructFontString(styles);
   }
 
   private preDrawOps(options: DrawingOptions = {}) {
-    if (this.resolveValueForDrawingOptions("saveAndRestore")) {
+    if (this.resolveOptions("saveAndRestore")) {
       this.context.save();
     }
     this.applyStyles(options.styles);
-    if (this.resolveValueForDrawingOptions("beginPath")) {
+    if (this.resolveOptions("beginPath")) {
       this.context.beginPath();
     }
   }
 
   private postDrawOps(options: DrawingOptions) {
-    if (this.resolveValueForDrawingOptions("closePath", options)) {
+    if (this.resolveOptions("closePath", options)) {
       this.context.closePath();
     }
-    if (this.resolveValueForDrawingOptions("fill", options)) {
+    if (this.resolveOptions("fill", options)) {
       this.context.fill();
     }
-    if (this.resolveValueForDrawingOptions("stroke", options)) {
+    if (this.resolveOptions("stroke", options)) {
       this.context.stroke();
     }
-    if (this.resolveValueForDrawingOptions("saveAndRestore", options)) {
+    if (this.resolveOptions("saveAndRestore", options)) {
       this.context.restore();
     }
   }

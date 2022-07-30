@@ -1,0 +1,2 @@
+- [ ] length-based dampening for rough lines
+- [ ] figure out size-based roughness adjustments for shape types

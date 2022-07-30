@@ -10,13 +10,14 @@ const OPTIONS: Canvas2DGraphicsOptions = {
   stroke: true,
   scalarNormalization: "width",
   styles: {
-    lineWidth: (coords) => coords.width(0.01)
+    lineWidth: (coords) => coords.width(0.01),
+    fillStyle: "lightblue"
   },
   saveAndRestore: false
 };
 
 const drawCircle = (graphics: Canvas2DGraphics) => {
-  graphics.circle(0, 0, 0.25);
+  graphics.circle(0, 0, 0.25, { fill: true });
 };
 
 const drawSquare = (graphics: Canvas2DGraphics) => {
@@ -37,6 +38,18 @@ const drawLineSegments = (graphics: Canvas2DGraphics) => {
     [-0.5, -0.5],
     [0.5, -0.5],
     [-0.5, 0.5],
+    [0.5, 0.5]
+  ]);
+};
+
+const drawCurveThroughPoints = (graphics: Canvas2DGraphics) => {
+  graphics.curveThroughPoints([
+    [-0.5, -0.5],
+    [0, -0.5],
+    [0.5, -0.5],
+    [0, 0],
+    [-0.5, 0.5],
+    [0, 0.5],
     [0.5, 0.5]
   ]);
 };
@@ -65,6 +78,11 @@ const DRAWINGS = [
     drawFunction: drawDiamond
   },
   {
+    title: "Curve Through Points",
+    canvas: document.createElement("canvas"),
+    drawFunction: drawCurveThroughPoints
+  },
+  {
     title: "Line Segments (rough)",
     canvas: document.createElement("canvas"),
     drawFunction: drawLineSegments,
@@ -74,6 +92,18 @@ const DRAWINGS = [
     title: "Circle (rough)",
     canvas: document.createElement("canvas"),
     drawFunction: drawCircle,
+    rough: true
+  },
+  {
+    title: "Square (rough)",
+    canvas: document.createElement("canvas"),
+    drawFunction: drawSquare,
+    rough: true
+  },
+  {
+    title: "Diamond (rough)",
+    canvas: document.createElement("canvas"),
+    drawFunction: drawDiamond,
     rough: true
   }
 ];
@@ -86,8 +116,8 @@ export const init = () => {
       ? new Canvas2DGraphicsRough(context, OPTIONS)
       : new Canvas2DGraphics(context, OPTIONS);
     const observer = new ResizeObserver(() => {
-      canvas.height = canvas.clientHeight * window.devicePixelRatio;
-      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight;
+      canvas.width = canvas.clientWidth;
       drawFunction(graphics);
     });
     observer.observe(canvas);

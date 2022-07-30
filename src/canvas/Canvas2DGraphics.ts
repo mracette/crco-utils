@@ -21,7 +21,7 @@ type ScaleWithOrigin = {
 
 export type Canvas2DStyleValues = {
   /**
-   * Directly from the CanvasRenderingContext2D API
+   * Directly from the CanvasRenderingCntext2D API
    */
   fillStyle: CanvasRenderingContext2D["fillStyle"];
   lineWidth: CanvasRenderingContext2D["lineWidth"];
@@ -126,17 +126,13 @@ export class Canvas2DGraphics {
     this.options = { ...defaults, ...options };
   }
 
-  public getStyleValue<T extends keyof Canvas2DStyleValues>(
-    key: T
-  ): Canvas2DStyleValues[T] {
-    return this.resolveStyle(key);
-  }
-
   public applyStyles(styles?: Canvas2DStyles): void {
-    this.assignStylesToContext(this.options.styles!);
-    if (styles) {
-      this.assignStylesToContext(styles);
-    }
+    // not sure about this...
+    // this.assignStylesToContext(this.options.styles!);
+    // if (styles) {
+    //   this.assignStylesToContext(styles);
+    // }
+    this.assignStylesToContext({ ...this.options.styles, ...styles });
   }
 
   public rect(
@@ -147,11 +143,12 @@ export class Canvas2DGraphics {
     options: DrawingOptions = {}
   ): void {
     this.preDrawOps(options);
-    const xAdj = this.resolveXValue(x, options);
-    const yAdj = this.resolveYValue(y, options);
-    const widthAdj = this.resolveScalarValue(width, options);
-    const heightAdj = this.resolveScalarValue(height, options);
-    this.context.rect(xAdj, yAdj, widthAdj, heightAdj);
+    this.context.rect(
+      this.resolveXValue(x, options),
+      this.resolveYValue(y, options),
+      this.resolveScalarValue(width, options),
+      this.resolveScalarValue(height, options)
+    );
     this.postDrawOps(options);
   }
 
@@ -166,6 +163,35 @@ export class Canvas2DGraphics {
         this.context.lineTo(x, y);
       }
     }
+    this.postDrawOps(options);
+  }
+
+  /**
+   * @see {@link https://stackoverflow.com/a/7058606/3064334}
+   */
+  public curveThroughPoints(points: number[][], options: DrawingOptions = {}): void {
+    this.preDrawOps(options);
+    for (let i = 0; i < points.length - 2; i++) {
+      const x = this.resolveXValue(points[i][0], options);
+      const y = this.resolveYValue(points[i][1], options);
+      if (i === 0) {
+        this.context.moveTo(x, y);
+      } else {
+        if (i < points.length - 2) {
+          const x1 = this.resolveXValue(points[i + 1][0], options);
+          const y1 = this.resolveYValue(points[i + 1][1], options);
+          const cx = (x + x1) / 2;
+          const cy = (y + y1) / 2;
+          this.context.quadraticCurveTo(x, y, cx, cy);
+        }
+      }
+    }
+    this.context.quadraticCurveTo(
+      this.resolveXValue(points[points.length - 2][0], options),
+      this.resolveYValue(points[points.length - 2][1], options),
+      this.resolveXValue(points[points.length - 1][0], options),
+      this.resolveYValue(points[points.length - 1][1], options)
+    );
     this.postDrawOps(options);
   }
 
@@ -240,7 +266,7 @@ export class Canvas2DGraphics {
     canvas.height = canvas.clientHeight * (options.dpr ? DPR : 1);
   }
 
-  private resolveXValue(value: number, options: DrawingOptions = {}) {
+  protected resolveXValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions(
       "useNormalCoordinates",
       options
@@ -248,7 +274,7 @@ export class Canvas2DGraphics {
     return useNormalCoordinates ? this.coords.nx(value) : value;
   }
 
-  private resolveYValue(value: number, options: DrawingOptions = {}) {
+  protected resolveYValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions(
       "useNormalCoordinates",
       options
@@ -256,7 +282,7 @@ export class Canvas2DGraphics {
     return useNormalCoordinates ? this.coords.ny(value) : value;
   }
 
-  private resolveScalarValue(value: number, options: DrawingOptions = {}) {
+  protected resolveScalarValue(value: number, options: DrawingOptions = {}) {
     const scalarNormalization = this.resolveOptions("scalarNormalization", options);
     if (scalarNormalization === "width") {
       return this.coords.width(value);
@@ -267,7 +293,7 @@ export class Canvas2DGraphics {
     return value;
   }
 
-  private resolveOptions<T extends keyof DrawingOptions>(
+  protected resolveOptions<T extends keyof DrawingOptions>(
     param: T,
     options?: DrawingOptions
   ): DrawingOptions[T] {
@@ -276,7 +302,7 @@ export class Canvas2DGraphics {
     ) as DrawingOptions[T];
   }
 
-  private resolveStyle<T extends keyof Canvas2DStyles>(
+  protected resolveStyle<T extends keyof Canvas2DStyles>(
     param: T,
     styles?: Canvas2DStyles
   ): Canvas2DStyleValues[T] {
@@ -296,7 +322,9 @@ export class Canvas2DGraphics {
    * font style to be changed without needing to keep track of the entire font
    * string
    */
-  private constructFontString(styles: Canvas2DStyles): CSSStyleDeclaration["font"] {
+  protected constructFontString(
+    styles: Canvas2DStyles
+  ): CSSStyleDeclaration["font"] {
     const fontSize = this.resolveStyle("fontSize", styles);
     const lineHeight = this.resolveStyle("lineHeight", styles);
     const fontStyle = this.resolveStyle("fontStyle", styles);
@@ -313,7 +341,7 @@ export class Canvas2DGraphics {
     return [fontSizePx, fontFamily, fontStyle, fontWeight, fontStretch].join(" ");
   }
 
-  private assignStylesToContext(styles: Canvas2DStyles) {
+  protected assignStylesToContext(styles: Canvas2DStyles) {
     for (const key in styles) {
       const resolvedStyle = this.resolveStyle(key as keyof Canvas2DStyles, styles);
       if (isUndefined(resolvedStyle)) {
@@ -374,17 +402,17 @@ export class Canvas2DGraphics {
     this.context.font = this.constructFontString(styles);
   }
 
-  private preDrawOps(options: DrawingOptions = {}) {
-    if (this.resolveOptions("saveAndRestore")) {
+  protected preDrawOps(options: DrawingOptions = {}) {
+    if (this.resolveOptions("saveAndRestore", options)) {
       this.context.save();
     }
     this.applyStyles(options.styles);
-    if (this.resolveOptions("beginPath")) {
+    if (this.resolveOptions("beginPath", options)) {
       this.context.beginPath();
     }
   }
 
-  private postDrawOps(options: DrawingOptions) {
+  protected postDrawOps(options: DrawingOptions) {
     if (this.resolveOptions("closePath", options)) {
       this.context.closePath();
     }

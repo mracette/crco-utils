@@ -197,6 +197,21 @@ export class Canvas2DGraphics {
     this.postDrawOps(options);
   }
 
+  public drawImage(
+    image: CanvasImageSource,
+    x: number,
+    y: number,
+    options: DrawingOptions = {}
+  ): void {
+    this.preDrawOps(options);
+    this.context.drawImage(
+      image,
+      this.resolveXValue(x, options),
+      this.resolveYValue(y, options)
+    );
+    this.postDrawOps(options);
+  }
+
   public star(
     cx: number,
     cy: number,
@@ -291,17 +306,17 @@ export class Canvas2DGraphics {
     canvas.height = canvas.clientHeight * (options.dpr ? DPR : 1);
   }
 
-  public resolveXValue(value: number, options: DrawingOptions = {}) {
+  protected resolveXValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.nx(value) : value;
   }
 
-  public resolveYValue(value: number, options: DrawingOptions = {}) {
+  protected resolveYValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.ny(value) : value;
   }
 
-  public resolveScalarValue(value: number, options: DrawingOptions = {}) {
+  protected resolveScalarValue(value: number, options: DrawingOptions = {}) {
     const scalarNormalization = this.resolveOptions('scalarNormalization', options);
     if (scalarNormalization === 'width') {
       return this.coords.width(value);

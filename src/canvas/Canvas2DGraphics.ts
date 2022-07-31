@@ -1,4 +1,4 @@
-import { CanvasCoordinates, isUndefined, TAU } from '..';
+import { CanvasCoordinates, isUndefined, polygon, star, TAU } from '..';
 import { DPR } from '../js/constants';
 import { Vector2 } from '../math/Vector2';
 
@@ -231,6 +231,52 @@ export class Canvas2DGraphics {
       TAU
     );
     this.postDrawOps(options);
+  }
+
+  public star(
+    cx: number,
+    cy: number,
+    size: number,
+    numPoints?: number,
+    inset?: number,
+    options: DrawingOptions = {}
+  ) {
+    this.lineSegments(
+      star(
+        this.resolveXValue(cx, options),
+        this.resolveYValue(cy, options),
+        this.resolveScalarValue(size, options),
+        numPoints,
+        inset
+      ),
+      {
+        ...options,
+        useNormalCoordinates: false,
+        saveAndRestore: true
+      }
+    );
+  }
+
+  public polygon(
+    cx: number,
+    cy: number,
+    size: number,
+    numPoints?: number,
+    options: DrawingOptions = {}
+  ) {
+    this.lineSegments(
+      polygon(
+        this.resolveXValue(cx, options),
+        this.resolveYValue(cy, options),
+        this.resolveScalarValue(size, options),
+        numPoints
+      ),
+      {
+        ...options,
+        useNormalCoordinates: false,
+        saveAndRestore: true
+      }
+    );
   }
 
   public clear(): void {

@@ -7,7 +7,13 @@ import { drawLineSegments } from './draw/lineSegments';
 import { drawPolygon } from './draw/polygon';
 import { drawSquare } from './draw/square';
 import { drawStar } from './draw/star';
-import { Canvas2DGraphics, Canvas2DGraphicsOptions, TAU, Vector2 } from '../src';
+import {
+  Canvas2DGraphics,
+  Canvas2DGraphicsOptions,
+  CanvasCoordinates,
+  TAU,
+  Vector2
+} from '../src';
 import { Canvas2DGraphicsRough } from '../src/canvas/Canvas2DGraphicsRough';
 
 const OPTIONS: Canvas2DGraphicsOptions = {
@@ -101,9 +107,15 @@ export const init = () => {
   DRAWINGS.map(({ canvas, drawFunction, title, rough = false }) => {
     ROOT_ELEMENT.append(canvas);
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    const coords = new CanvasCoordinates({
+      canvas,
+      nxRange: [-3, 3],
+      // nxRange: [-1, 1],
+      nyRange: [-1, 1]
+    });
     const graphics = rough
-      ? new Canvas2DGraphicsRough(context, OPTIONS)
-      : new Canvas2DGraphics(context, OPTIONS);
+      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords })
+      : new Canvas2DGraphics(context, { ...OPTIONS, coords });
     const observer = new ResizeObserver(() => {
       canvas.height = canvas.clientHeight;
       canvas.width = canvas.clientWidth;

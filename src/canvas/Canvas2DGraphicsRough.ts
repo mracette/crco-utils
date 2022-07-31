@@ -79,13 +79,21 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
         const randomX = randomRadius * Math.cos(randomRotation);
         const randomY = randomRadius * Math.sin(randomRotation);
         const angle = (TAU * i) / segmentCount;
-        const x0 = cx + randomX + Math.cos(angle) * r * 2;
-        const y0 = cy + randomY + Math.sin(angle) * r * 2;
+        const x0 =
+          this.resolveXValue(cx + randomX, options) +
+          Math.cos(angle) * this.resolveScalarValue(r, options);
+        const y0 =
+          this.resolveYValue(cy + randomY, options) +
+          Math.sin(angle) * this.resolveScalarValue(r, options);
         points.push([x0, y0]);
       }
       points[segmentCount] = points[0];
       points[segmentCount + 1] = points[1];
-      this.curveThroughPoints(points, options);
+      this.curveThroughPoints(points, {
+        ...options,
+        useNormalCoordinates: false,
+        saveAndRestore: true
+      });
     }
   }
 

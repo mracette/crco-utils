@@ -1,6 +1,5 @@
 import { Canvas2DGraphics } from '../../src';
-import { star } from '../../src/geometry/star';
 
 export const drawStar = (graphics: Canvas2DGraphics) => {
-  graphics.lineSegments(star(0, 0, 0.9, 5), { fill: true, closePath: true });
+  graphics.star(0, 0, 0.25, 5, undefined, { fill: true, closePath: true });
 };

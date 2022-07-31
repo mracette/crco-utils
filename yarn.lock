@@ -558,10 +558,10 @@
   resolved "https://registry.yarnpkg.com/@microsoft/tsdoc/-/tsdoc-0.13.2.tgz#3b0efb6d3903bd49edb073696f60e90df08efb26"
   integrity sha512-WrHvO8PDL8wd8T2+zBGKrMwVL5IyzR3ryWUsl0PXgEV0QHup4mTLi0QcATefGI6Gx9Anu7vthPyyyLpY0EpiQg==
 
-"@mracette/eslint-config@^0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@mracette/eslint-config/-/eslint-config-0.0.12.tgz#cf91fffcf1afa160d2d0a245e0cd660570309740"
-  integrity sha512-NCI976Rz5Ho0OBAfrMLLDLMIPIyGlMxu1fwTUW+cQRuhurXFtA7BV2p0EsTbQwZlFeOysI3iubdQioyw7gP0Ug==
+"@mracette/eslint-config@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@mracette/eslint-config/-/eslint-config-0.0.13.tgz#f31e69cf50055dba6bd3f56438497ea9c5b2777d"
+  integrity sha512-YxUPPoPOVEqFnEG5Zk9cAiGh59el6D1MgIK3cshBDrTGVwotnKOZg5hbveNcrKH85FdM1pfwsC/g5JGOSOy4Xg==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"

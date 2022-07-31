@@ -1,4 +1,4 @@
-import { CanvasCoordinates, isUndefined, polygon, star, TAU } from '..';
+import { CanvasCoordinates, deepClone, isUndefined, polygon, star, TAU } from '..';
 import { DPR } from '../js/constants';
 import { Vector2 } from '../math/Vector2';
 
@@ -83,15 +83,17 @@ export interface DrawingOptions {
   useNormalCoordinates?: boolean;
   /** @defaultValue false */
   scalarNormalization?: 'width' | 'height' | false;
+  /** @defaultValue false */
+  skipPreOps?: boolean;
+  /** @defaultValue false */
+  skipPostOps?: boolean;
 }
 
 export interface InitializationOptions {
   coords?: CanvasCoordinates;
 }
 
-export interface Canvas2DGraphicsOptions
-  extends DrawingOptions,
-    InitializationOptions {}
+export interface Canvas2DGraphicsOptions extends DrawingOptions, InitializationOptions {}
 
 export interface Canvas2DGraphics {
   context: CanvasRenderingContext2D;
@@ -108,8 +110,7 @@ export class Canvas2DGraphics {
     options: Canvas2DGraphicsOptions = {}
   ) {
     this.context = context;
-    this.coords =
-      options.coords ?? new CanvasCoordinates({ canvas: context.canvas });
+    this.coords = options.coords ?? new CanvasCoordinates({ canvas: context.canvas });
 
     const defaults: DrawingOptions = {
       beginPath: true,
@@ -120,28 +121,15 @@ export class Canvas2DGraphics {
       stroke: false,
       styles: {},
       useNormalCoordinates: false,
-      scalarNormalization: false
+      scalarNormalization: false,
+      skipPreOps: false,
+      skipPostOps: false
     };
 
     this.options = { ...defaults, ...options };
   }
 
-  public applyStyles(styles?: Canvas2DStyles): void {
-    // not sure about this...
-    // this.assignStylesToContext(this.options.styles!);
-    // if (styles) {
-    //   this.assignStylesToContext(styles);
-    // }
-    this.assignStylesToContext({ ...this.options.styles, ...styles });
-  }
-
-  public rect(
-    x = 0,
-    y = 0,
-    width = 1,
-    height = 1,
-    options: DrawingOptions = {}
-  ): void {
+  public rect(x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}): void {
     this.preDrawOps(options);
     this.context.rect(
       this.resolveXValue(x, options),
@@ -195,33 +183,12 @@ export class Canvas2DGraphics {
     this.postDrawOps(options);
   }
 
-  public text(
-    text: string,
-    cx: number,
-    cy: number,
-    options: DrawingOptions = {}
-  ): void {
-    this.preDrawOps(options);
-    this.context.fillText(
-      text,
-      this.resolveXValue(cx, options),
-      this.resolveYValue(cy, options),
-      this.resolveOptions('maxTextWidth', options)
-    );
-    this.postDrawOps(options);
-  }
-
   /**
    * @defaultValue options.beginPath = true
    * @defaultValue options.saveAndRestore = true
    * @defaultValue options.fill = true
    */
-  public circle(
-    cx: number,
-    cy: number,
-    r: number,
-    options: DrawingOptions = {}
-  ): void {
+  public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}): void {
     this.preDrawOps(options);
     this.context.arc(
       this.resolveXValue(cx, options),
@@ -279,13 +246,28 @@ export class Canvas2DGraphics {
     );
   }
 
-  public clear(): void {
-    this.context.clearRect(
-      0,
-      0,
-      this.context.canvas.width,
-      this.context.canvas.height
+  public applyStyles(styles?: Canvas2DStyles): void {
+    // not sure about this...
+    // this.assignStylesToContext(this.options.styles!);
+    // if (styles) {
+    //   this.assignStylesToContext(styles);
+    // }
+    this.assignStylesToContext({ ...this.options.styles, ...styles });
+  }
+
+  public text(text: string, cx: number, cy: number, options: DrawingOptions = {}): void {
+    this.preDrawOps(options);
+    this.context.fillText(
+      text,
+      this.resolveXValue(cx, options),
+      this.resolveYValue(cy, options),
+      this.resolveOptions('maxTextWidth', options)
     );
+    this.postDrawOps(options);
+  }
+
+  public clear(): void {
+    this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
   }
 
   /**
@@ -313,18 +295,12 @@ export class Canvas2DGraphics {
   }
 
   protected resolveXValue(value: number, options: DrawingOptions = {}) {
-    const useNormalCoordinates = this.resolveOptions(
-      'useNormalCoordinates',
-      options
-    );
+    const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.nx(value) : value;
   }
 
   protected resolveYValue(value: number, options: DrawingOptions = {}) {
-    const useNormalCoordinates = this.resolveOptions(
-      'useNormalCoordinates',
-      options
-    );
+    const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.ny(value) : value;
   }
 
@@ -368,9 +344,7 @@ export class Canvas2DGraphics {
    * font style to be changed without needing to keep track of the entire font
    * string
    */
-  protected constructFontString(
-    styles: Canvas2DStyles
-  ): CSSStyleDeclaration['font'] {
+  protected constructFontString(styles: Canvas2DStyles): CSSStyleDeclaration['font'] {
     const fontSize = this.resolveStyle('fontSize', styles);
     const lineHeight = this.resolveStyle('lineHeight', styles);
     const fontStyle = this.resolveStyle('fontStyle', styles);

@@ -84,9 +84,7 @@ export interface DrawingOptions {
   /** @defaultValue false */
   scalarNormalization?: 'width' | 'height' | false;
   /** @defaultValue false */
-  skipPreOps?: boolean;
-  /** @defaultValue false */
-  skipPostOps?: boolean;
+  skipApplyStyles?: boolean;
 }
 
 export interface InitializationOptions {
@@ -122,8 +120,7 @@ export class Canvas2DGraphics {
       styles: {},
       useNormalCoordinates: false,
       scalarNormalization: false,
-      skipPreOps: false,
-      skipPostOps: false
+      skipApplyStyles: false
     };
 
     this.options = { ...defaults, ...options };
@@ -294,17 +291,17 @@ export class Canvas2DGraphics {
     canvas.height = canvas.clientHeight * (options.dpr ? DPR : 1);
   }
 
-  protected resolveXValue(value: number, options: DrawingOptions = {}) {
+  public resolveXValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.nx(value) : value;
   }
 
-  protected resolveYValue(value: number, options: DrawingOptions = {}) {
+  public resolveYValue(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.ny(value) : value;
   }
 
-  protected resolveScalarValue(value: number, options: DrawingOptions = {}) {
+  public resolveScalarValue(value: number, options: DrawingOptions = {}) {
     const scalarNormalization = this.resolveOptions('scalarNormalization', options);
     if (scalarNormalization === 'width') {
       return this.coords.width(value);
@@ -426,7 +423,9 @@ export class Canvas2DGraphics {
     if (this.resolveOptions('saveAndRestore', options)) {
       this.context.save();
     }
-    this.applyStyles(options.styles);
+    if (!this.resolveOptions('skipApplyStyles', options)) {
+      this.applyStyles(options.styles);
+    }
     if (this.resolveOptions('beginPath', options)) {
       this.context.beginPath();
     }

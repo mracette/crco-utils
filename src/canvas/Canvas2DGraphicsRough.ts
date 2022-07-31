@@ -1,10 +1,4 @@
-import {
-  Canvas2DGraphics,
-  Canvas2DGraphicsOptions,
-  DrawingOptions,
-  lerp,
-  TAU
-} from '..';
+import { Canvas2DGraphics, Canvas2DGraphicsOptions, DrawingOptions, lerp, TAU } from '..';
 
 declare module '..' {
   interface DrawingOptions {
@@ -70,7 +64,9 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
 
   public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}) {
     const segmentCount = 16;
-    const roughnessAdj = this.options.roughness! * r * 6;
+    const roughnessAdj =
+      (this.options.roughness! * 10 * this.resolveScalarValue(r, options)) /
+      window.innerWidth;
     for (let n = 0; n < 2; n++) {
       const points = [];
       for (let i = 0; i < segmentCount; i++) {

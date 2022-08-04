@@ -1,8 +1,15 @@
-import { Canvas2DGraphics, Canvas2DGraphicsOptions, DrawingOptions, lerp, TAU } from '..';
+import {
+  Canvas2DGraphics,
+  Canvas2DGraphicsOptions,
+  DrawingOptions,
+  lerp,
+  TAU
+} from '..';
 
 declare module '..' {
   interface DrawingOptions {
     roughness?: number;
+    closeLoop?: boolean;
   }
 }
 
@@ -13,7 +20,8 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
     super(context, options);
 
     const defaults: Canvas2DGraphicsOptions = {
-      roughness: 0.025
+      roughness: 0.025,
+      closeLoop: false
     };
 
     this.options = { ...defaults, ...this.options };
@@ -25,10 +33,17 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
     for (let j = 0; j < 2; j++) {
       const roughPoints = [];
       for (let i = 0; i < numSegments; i++) {
-        const p0 = points[i];
-        const p1 = points[i + 1];
-        const length = Math.sqrt((p0[0] - p1[0]) ** 2 + (p0[1] - p1[1]) ** 2);
+        const [x0, y0] = points[i];
+        const [x1, y1] = points[i + 1];
+        const length = Math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2);
         const roughnessAdj = this.options.roughness! * length;
+
+        if (options.closeLoop && i === numSegments - 1) {
+          // roughPoints[i] = roughPoints[1];
+          roughPoints.push(roughPoints[0]);
+          break;
+        }
+
         // four rough points for each rough line
         for (let k = 0; k < 4; k++) {
           const randomRadius = Math.random() * roughnessAdj;
@@ -38,27 +53,30 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
           let x = NaN;
           let y = NaN;
           if (k === 0) {
-            x = p0[0] + randomX;
-            y = p0[1] + randomY;
+            x = x0 + randomX;
+            y = y0 + randomY;
           }
           if (k === 1) {
             const distance = 0.5;
-            x = lerp(distance, p0[0], p1[0]) + randomX;
-            y = lerp(distance, p0[1], p1[1]) + randomY;
+            x = lerp(distance, x0, x1) + randomX;
+            y = lerp(distance, y0, y1) + randomY;
           }
           if (k === 2) {
             const distance = 0.75;
-            x = lerp(distance, p0[0], p1[0]) + randomX;
-            y = lerp(distance, p0[1], p1[1]) + randomY;
+            x = lerp(distance, x0, x1) + randomX;
+            y = lerp(distance, y0, y1) + randomY;
           }
           if (k === 3) {
-            x = p1[0] + randomX;
-            y = p1[1] + randomY;
+            x = x1 + randomX;
+            y = y1 + randomY;
           }
           roughPoints.push([x, y]);
         }
-        this.curveThroughPoints(roughPoints, options);
       }
+      // only allow fills on the first outline
+      const optionsAdjusted: DrawingOptions =
+        j === 0 ? options : { ...options, fill: false };
+      this.curveThroughPoints(roughPoints, optionsAdjusted);
     }
   }
 
@@ -88,7 +106,8 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
       this.curveThroughPoints(points, {
         ...options,
         useNormalCoordinates: false,
-        saveAndRestore: true
+        saveAndRestore: true,
+        closeLoop: true
       });
     }
   }
@@ -108,7 +127,18 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
     this.lineSegments(points, {
       ...options,
       useNormalCoordinates: false,
-      saveAndRestore: true
+      saveAndRestore: true,
+      closeLoop: true
     });
+  }
+
+  public polygon(
+    cx: number,
+    cy: number,
+    size: number,
+    numPoints?: number,
+    options: DrawingOptions = {}
+  ) {
+    super.polygon(cx, cy, size, numPoints, { ...options, closeLoop: true });
   }
 }

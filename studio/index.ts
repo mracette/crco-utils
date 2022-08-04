@@ -24,7 +24,8 @@ const OPTIONS: Canvas2DGraphicsOptions = {
     lineWidth: (coords) => coords.width(0.01),
     fillStyle: 'lightblue'
   },
-  saveAndRestore: false
+  saveAndRestore: false,
+  closePath: false
 };
 
 const ROOT_ELEMENT = document.getElementById('root') as HTMLDivElement;
@@ -114,7 +115,7 @@ export const init = () => {
       nyRange: [-1, 1]
     });
     const graphics = rough
-      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords })
+      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords, roughness: 0.05 })
       : new Canvas2DGraphics(context, { ...OPTIONS, coords });
     const observer = new ResizeObserver(() => {
       canvas.height = canvas.clientHeight;

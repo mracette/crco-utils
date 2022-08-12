@@ -9,6 +9,16 @@ export class Vector2 {
     return (this.x ** 2 + this.y ** 2) ** 0.5;
   }
 
+  clone() {
+    return new Vector2(this.x, this.y);
+  }
+
+  multiply(scalar: number) {
+    this.x *= scalar;
+    this.y *= scalar;
+    return this;
+  }
+
   normalize() {
     const magnitude = this.magnitude;
     if (magnitude !== 0) {
@@ -18,14 +28,10 @@ export class Vector2 {
     return this;
   }
 
-  multiply(scalar: number) {
-    this.x *= scalar;
-    this.y *= scalar;
+  set(vector: Vector2) {
+    this.x = vector.x;
+    this.y = vector.y;
     return this;
-  }
-
-  clone() {
-    return new Vector2(this.x, this.y);
   }
 
   static from(a: Vector2, b: Vector2) {

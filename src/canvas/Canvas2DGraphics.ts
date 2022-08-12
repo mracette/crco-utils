@@ -46,7 +46,6 @@ export type Canvas2DStyleValues = {
   lineDash: number[];
   alpha: number;
   lineWidthIsProportionalTo: CanvasDimensions;
-  fontSizeIsProportionalTo: CanvasDimensions;
   /**
    * Directly from the CSSStyleDeclaration
    */
@@ -113,6 +112,11 @@ export class Canvas2DGraphics {
     this.coords =
       options.coords ?? new CanvasCoordinates({ canvas: context.canvas });
 
+    const defaultStyles: Canvas2DStyles = {
+      fontFamily: 'sans-serif',
+      fontSize: 16
+    };
+
     const defaults: DrawingOptions = {
       beginPath: true,
       closePath: false,
@@ -120,13 +124,16 @@ export class Canvas2DGraphics {
       maxTextWidth: undefined,
       saveAndRestore: true,
       stroke: false,
-      styles: {},
       useNormalCoordinates: false,
       scalarNormalization: false,
       skipApplyStyles: false
     };
 
     this.options = { ...defaults, ...options };
+    this.options.styles = {
+      ...defaultStyles,
+      ...options.styles
+    };
   }
 
   public rect(
@@ -395,14 +402,17 @@ export class Canvas2DGraphics {
     const fontFamily = this.resolveStyle('fontFamily', styles);
     const fontWeight = this.resolveStyle('fontWeight', styles);
     const fontStretch = this.resolveStyle('fontStretch', styles);
-
     let fontSizePx = typeof fontSize === 'number' ? `${fontSize}px` : undefined;
 
     if (lineHeight && fontSizePx) {
       fontSizePx = `${fontSize} / ${lineHeight}}`;
     }
 
-    return [fontSizePx, fontFamily, fontStyle, fontWeight, fontStretch].join(' ');
+    const fontString = [fontSizePx, fontFamily, fontStyle, fontWeight, fontStretch]
+      .join(' ')
+      .trim();
+
+    return fontString;
   }
 
   protected assignStylesToContext(styles: Canvas2DStyles) {

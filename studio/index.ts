@@ -7,6 +7,7 @@ import { drawLineSegments } from './draw/lineSegments';
 import { drawPolygon } from './draw/polygon';
 import { drawSquare } from './draw/square';
 import { drawStar } from './draw/star';
+import { drawText } from './draw/text';
 import {
   Canvas2DGraphics,
   Canvas2DGraphicsOptions,
@@ -100,6 +101,12 @@ const DRAWINGS = [
     title: 'Polygon (rough)',
     canvas: document.createElement('canvas'),
     drawFunction: drawPolygon,
+    rough: true
+  },
+  {
+    title: 'Polygon (rough)',
+    canvas: document.createElement('canvas'),
+    drawFunction: drawText,
     rough: true
   }
 ];

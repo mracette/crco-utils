@@ -101,7 +101,7 @@ export class CanvasCoordinates {
    * Maps a normalized value n to a x-coordinate on the canvas.
    */
   public nx(n: number): number {
-    const nAdjusted = normalize(n, ...this.nxRange, this.clamp);
+    const nAdjusted = normalize(n, this.nxRange[0], this.nxRange[1], this.clamp);
     return (
       this.getPaddingXCanvasUnits() +
       this.getOffsetX() +
@@ -113,7 +113,7 @@ export class CanvasCoordinates {
    * Maps a normalized value n to a y-coordinate on the canvas.
    */
   public ny(n: number): number {
-    const nAdjusted = normalize(n, ...this.nyRange, this.clamp);
+    const nAdjusted = normalize(n, this.nyRange[0], this.nxRange[1], this.clamp);
     const inverse = this.yAxisOrientation === YAxisOrientation.Up ? true : false;
     return (
       this.getPaddingYCanvasUnits() +
@@ -132,7 +132,7 @@ export class CanvasCoordinates {
       this.getPaddingXCanvasUnits() + this.width(),
       this.clamp
     );
-    return lerp(xAdjusted, ...this.nxRange);
+    return lerp(xAdjusted, this.nxRange[0], this.nxRange[1]);
   }
 
   /**
@@ -145,7 +145,7 @@ export class CanvasCoordinates {
       this.getPaddingYCanvasUnits() + this.height(),
       this.clamp
     );
-    return lerp(yAdjusted, ...this.nxRange);
+    return lerp(yAdjusted, this.nxRange[0], this.nxRange[1]);
   }
 
   /**

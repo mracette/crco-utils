@@ -9,9 +9,21 @@ export class Vector2 {
     return Math.sqrt(this.x ** 2 + this.y ** 2);
   }
 
-  toUnitVector(): Vector2 {
+  normalize() {
     const magnitude = this.magnitude;
-    return new Vector2(this.x / magnitude, this.y / magnitude);
+    if (magnitude !== 0) {
+      this.x = this.x / magnitude;
+      this.y = this.y / magnitude;
+    }
+  }
+
+  multiply(scalar: number) {
+    this.x *= scalar;
+    this.y *= scalar;
+  }
+
+  clone() {
+    return new Vector2(this.x, this.y);
   }
 
   static from(a: Vector2, b: Vector2) {

@@ -7,6 +7,7 @@ export * from './js/isSomeUndefined';
 export * from './js/isUndefined';
 export * from './js/deepClone';
 export * from './js/sleep';
+export * from './math/collision';
 export * from './math/clamp';
 export * from './math/constants';
 export * from './math/lerp';

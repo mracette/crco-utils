@@ -6,14 +6,14 @@ export class Vector2 {
   }
 
   get magnitude(): number {
-    return Math.sqrt(this.x ** 2 + this.y ** 2);
+    return (this.x ** 2 + this.y ** 2) ** 0.5;
   }
 
   normalize() {
     const magnitude = this.magnitude;
     if (magnitude !== 0) {
-      this.x = this.x / magnitude;
-      this.y = this.y / magnitude;
+      this.x /= magnitude;
+      this.y /= magnitude;
     }
     return this;
   }

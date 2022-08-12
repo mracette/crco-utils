@@ -113,7 +113,7 @@ export class CanvasCoordinates {
    * Maps a normalized value n to a y-coordinate on the canvas.
    */
   public ny(n: number): number {
-    const nAdjusted = normalize(n, this.nyRange[0], this.nxRange[1], this.clamp);
+    const nAdjusted = normalize(n, this.nyRange[0], this.nyRange[1], this.clamp);
     const inverse = this.yAxisOrientation === YAxisOrientation.Up ? true : false;
     return (
       this.getPaddingYCanvasUnits() +

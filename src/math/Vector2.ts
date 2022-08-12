@@ -15,11 +15,13 @@ export class Vector2 {
       this.x = this.x / magnitude;
       this.y = this.y / magnitude;
     }
+    return this;
   }
 
   multiply(scalar: number) {
     this.x *= scalar;
     this.y *= scalar;
+    return this;
   }
 
   clone() {

@@ -11,6 +11,7 @@ export * from './math/collision';
 export * from './math/clamp';
 export * from './math/constants';
 export * from './math/lerp';
+export * from './math/mod';
 export * from './math/normalize';
 export * from './math/Vector2';
 export * from './dom/aspectRatioResize';

@@ -1,3 +1,5 @@
+import { distance } from './distance';
+
 export class Vector2 {
   constructor(public x: number, public y: number) {}
 
@@ -7,6 +9,10 @@ export class Vector2 {
 
   get magnitude(): number {
     return (this.x ** 2 + this.y ** 2) ** 0.5;
+  }
+
+  distanceTo(vector: Vector2) {
+    return distance(this.x, vector.x, this.y, vector.y);
   }
 
   clone() {

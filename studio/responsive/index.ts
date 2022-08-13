@@ -1,4 +1,8 @@
-import { Canvas2DGraphics, Canvas2DGraphicsRough, CanvasCoordinates } from '../../src';
+import {
+  Canvas2DGraphics,
+  Canvas2DGraphicsRough,
+  CanvasCoordinates
+} from '../../src';
 import { Canvas2DGraphicsOptions } from '../../src';
 import { drawCircle } from '../draw/circle';
 import { drawDiamond } from '../draw/diamond';

@@ -8,6 +8,7 @@ export * from './js/isUndefined';
 export * from './js/deepClone';
 export * from './js/sleep';
 export * from './math/collision';
+export * from './math/distance';
 export * from './math/clamp';
 export * from './math/constants';
 export * from './math/lerp';

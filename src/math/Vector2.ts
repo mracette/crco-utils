@@ -11,12 +11,16 @@ export class Vector2 {
     return (this.x ** 2 + this.y ** 2) ** 0.5;
   }
 
-  distanceTo(vector: Vector2) {
-    return distance(this.x, vector.x, this.y, vector.y);
-  }
-
   clone() {
     return new Vector2(this.x, this.y);
+  }
+
+  distanceTo(vector: Vector2) {
+    return distance(this.x, this.y, vector.x, vector.y);
+  }
+
+  equals(vector: Vector2) {
+    return this.x === vector.x && this.y === vector.y;
   }
 
   multiply(scalar: number) {

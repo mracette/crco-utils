@@ -25,7 +25,6 @@ const OPTIONS: Canvas2DGraphicsOptions = {
     lineWidth: (coords) => coords.width(0.01),
     fillStyle: 'lightblue'
   },
-  saveAndRestore: false,
   closePath: false
 };
 
@@ -117,8 +116,8 @@ export const init = () => {
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
     const coords = new CanvasCoordinates({
       canvas,
-      nxRange: [-3, 3],
-      // nxRange: [-1, 1],
+      // nxRange: [-3, 3],
+      nxRange: [-1, 1],
       nyRange: [-1, 1]
     });
     const graphics = rough

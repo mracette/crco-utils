@@ -1,9 +1,11 @@
 import {
   Canvas2DGraphics,
   Canvas2DGraphicsOptions,
+  Canvas2DStyles,
   DrawingOptions,
   lerp,
-  TAU
+  TAU,
+  Vector2
 } from '..';
 
 declare module '..' {
@@ -140,5 +142,117 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
     options: DrawingOptions = {}
   ) {
     super.polygon(cx, cy, size, numPoints, { ...options, closeLoop: true });
+  }
+
+  private measureTextInContext(text: string, styles?: Canvas2DStyles) {
+    this.context.save();
+    // apply the current styles to ensure that text measurement is accurate
+    this.applyStyles(styles);
+    const measurement = this.context.measureText(text);
+    this.context.restore();
+    return measurement;
+  }
+
+  public text(text: string, cx: number, cy: number, options: DrawingOptions = {}) {
+    const accumulator = 0;
+    const textMeasured = this.measureTextInContext(text, options.styles);
+    const letters = text.split('');
+
+    const letterHeight =
+      textMeasured.fontBoundingBoxAscent - textMeasured.fontBoundingBoxDescent;
+    const letterHeightNormal = this.coords.yn(letterHeight) - this.coords.yn(0);
+
+    const letterWidth = textMeasured.width / letters.length;
+    const letterWidthNormal = this.coords.xn(letterWidth) - this.coords.xn(0);
+
+    // this.context.save();
+    this.applyStyles(options.styles);
+
+    letters.forEach((letter, i) => {
+      // this.context.save();
+
+      // apply the current styles to ensure that text measurement is accurate
+      // this.applyStyles(options.styles);
+
+      // const height = bottom - top / 2;
+
+      // const cxCanvas = this.coords.nx(cx);
+      // const cyCanvas = this.coords.ny(cy);
+
+      // let cxAdjusted = cxCanvas;
+      // let cyAdjusted = cyCanvas;
+
+      // switch (this.context.textAlign) {
+      //   case 'left':
+      //     cxAdjusted = cxCanvas + width / 2;
+      //     break;
+      //   case 'right':
+      //     cxAdjusted = cxCanvas - width / 2;
+      //     break;
+      //   case 'center':
+      //     break;
+      //   default:
+      //     console.warn(
+      //       `textAlign option not supported when roughness is enabled: ${this.context.textAlign}`
+      //     );
+      // }
+
+      // switch (this.context.textBaseline) {
+      //   case 'top':
+      //     cyAdjusted = cyCanvas + height / 2;
+      //     break;
+      //   case 'bottom':
+      //     cyAdjusted = cyCanvas - height / 2;
+      //     break;
+      //   case 'middle':
+      //     break;
+      //   default:
+      //     console.warn(
+      //       `textBaseline option not supported when roughness is enabled: ${this.context.textAlign}`
+      //     );
+      // }
+
+      // cxAdjusted = this.coords.xn(cxAdjusted);
+      // cyAdjusted = this.coords.yn(cyAdjusted);
+
+      // this.context.restore();
+
+      let letterX = 0;
+      if (this.context.textAlign === 'left') {
+        letterX = cx + letterWidthNormal * i;
+      }
+      if (this.context.textAlign === 'right') {
+        letterX = -letterWidthNormal * letters.length + cx + letterWidthNormal * i;
+      }
+      if (this.context.textAlign === 'center') {
+        letterX = (-letterWidthNormal * letters.length) / 2 + cx + letterWidthNormal * i;
+      }
+
+      let letterY = 0;
+      if (this.context.textBaseline === 'top') {
+        letterY = cy - letterHeightNormal / 2;
+      }
+
+      super.text(letter, letterX, cy, {
+        ...options,
+        styles: {
+          ...options.styles,
+          rotation: {
+            origin: new Vector2(letterX, cy),
+            rotation: this.options.roughness! * 2!
+          }
+        }
+      });
+      super.text(letter, letterX, cy, {
+        ...options,
+        styles: {
+          ...options.styles,
+          rotation: {
+            origin: new Vector2(letterX, cy),
+            rotation: -this.options.roughness! * 2!
+          }
+        }
+      });
+    });
   }
 }

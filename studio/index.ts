@@ -3,6 +3,7 @@ import './utilities.css';
 import { drawCircle } from './draw/circle';
 import { drawCurve } from './draw/curve';
 import { drawDiamond } from './draw/diamond';
+import { drawLineLengths } from './draw/lineLengths';
 import { drawLineSegments } from './draw/lineSegments';
 import { drawPolygon } from './draw/polygon';
 import { drawSquare } from './draw/square';
@@ -107,6 +108,12 @@ const DRAWINGS = [
     canvas: document.createElement('canvas'),
     drawFunction: drawText,
     rough: true
+  },
+  {
+    title: 'Line Lengths (rough)',
+    canvas: document.createElement('canvas'),
+    drawFunction: drawLineLengths,
+    rough: true
   }
 ];
 
@@ -118,10 +125,11 @@ export const init = () => {
       canvas,
       // nxRange: [-3, 3],
       nxRange: [-1, 1],
-      nyRange: [-1, 1]
+      nyRange: [-1, 1],
+      padding: 0.1
     });
     const graphics = rough
-      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords, roughness: 0.05 })
+      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords, roughness: 1 })
       : new Canvas2DGraphics(context, { ...OPTIONS, coords });
     const observer = new ResizeObserver(() => {
       canvas.height = canvas.clientHeight;

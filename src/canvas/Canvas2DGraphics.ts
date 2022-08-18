@@ -90,9 +90,7 @@ export interface InitializationOptions {
   coords?: CanvasCoordinates;
 }
 
-export interface Canvas2DGraphicsOptions
-  extends DrawingOptions,
-    InitializationOptions {}
+export interface Canvas2DGraphicsOptions extends DrawingOptions, InitializationOptions {}
 
 export interface Canvas2DGraphics {
   context: CanvasRenderingContext2D;
@@ -109,8 +107,7 @@ export class Canvas2DGraphics {
     options: Canvas2DGraphicsOptions = {}
   ) {
     this.context = context;
-    this.coords =
-      options.coords ?? new CanvasCoordinates({ canvas: context.canvas });
+    this.coords = options.coords ?? new CanvasCoordinates({ canvas: context.canvas });
 
     const defaultStyles: Canvas2DStyles = {
       fontFamily: 'sans-serif',
@@ -136,19 +133,13 @@ export class Canvas2DGraphics {
     };
   }
 
-  public rect(
-    x = 0,
-    y = 0,
-    width = 1,
-    height = 1,
-    options: DrawingOptions = {}
-  ): void {
+  public rect(x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}): void {
     this.preDrawOps(options);
     this.context.rect(
-      this.resolveXValue(x, options),
-      this.resolveYValue(y, options),
-      this.resolveScalarValue(width, options),
-      this.resolveScalarValue(height, options)
+      this.resolveX(x, options),
+      this.resolveY(y, options),
+      this.resolveScalar(width, options),
+      this.resolveScalar(height, options)
     );
     this.postDrawOps(options);
   }
@@ -156,8 +147,8 @@ export class Canvas2DGraphics {
   public lineSegments(points: number[][], options: DrawingOptions = {}): void {
     this.preDrawOps(options);
     for (let i = 0; i < points.length; i++) {
-      const x = this.resolveXValue(points[i][0], options);
-      const y = this.resolveYValue(points[i][1], options);
+      const x = this.resolveX(points[i][0], options);
+      const y = this.resolveY(points[i][1], options);
       if (i === 0) {
         this.context.moveTo(x, y);
       } else {
@@ -172,27 +163,30 @@ export class Canvas2DGraphics {
    */
   public curveThroughPoints(points: number[][], options: DrawingOptions = {}): void {
     this.preDrawOps(options);
-    for (let i = 0; i < points.length - 2; i++) {
-      const x = this.resolveXValue(points[i][0], options);
-      const y = this.resolveYValue(points[i][1], options);
+    for (let i = 0; i < points.length - 1; i++) {
+      const x = this.resolveX(points[i][0], options);
+      const y = this.resolveY(points[i][1], options);
       if (i === 0) {
         this.context.moveTo(x, y);
       } else {
-        if (i < points.length - 2) {
-          const x1 = this.resolveXValue(points[i + 1][0], options);
-          const y1 = this.resolveYValue(points[i + 1][1], options);
+        const x1 = this.resolveX(points[i + 1][0], options);
+        const y1 = this.resolveY(points[i + 1][1], options);
+        if (x1 === x && y1 === y) {
+          console.log('line to', i);
+          this.context.lineTo(x1, y1);
+        } else {
           const cx = (x + x1) / 2;
           const cy = (y + y1) / 2;
           this.context.quadraticCurveTo(x, y, cx, cy);
         }
       }
     }
-    this.context.quadraticCurveTo(
-      this.resolveXValue(points[points.length - 2][0], options),
-      this.resolveYValue(points[points.length - 2][1], options),
-      this.resolveXValue(points[points.length - 1][0], options),
-      this.resolveYValue(points[points.length - 1][1], options)
-    );
+    points.slice(-1).forEach((point) => {
+      this.context.lineTo(
+        this.resolveX(point[0], options),
+        this.resolveY(point[1], options)
+      );
+    });
     this.postDrawOps(options);
   }
 
@@ -201,17 +195,12 @@ export class Canvas2DGraphics {
    * @defaultValue options.saveAndRestore = true
    * @defaultValue options.fill = true
    */
-  public circle(
-    cx: number,
-    cy: number,
-    r: number,
-    options: DrawingOptions = {}
-  ): void {
+  public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}): void {
     this.preDrawOps(options);
     this.context.arc(
-      this.resolveXValue(cx, options),
-      this.resolveYValue(cy, options),
-      this.resolveScalarValue(r, options),
+      this.resolveX(cx, options),
+      this.resolveY(cy, options),
+      this.resolveScalar(r, options),
       0,
       TAU
     );
@@ -225,11 +214,7 @@ export class Canvas2DGraphics {
     options: DrawingOptions = {}
   ): void {
     this.preDrawOps(options);
-    this.context.drawImage(
-      image,
-      this.resolveXValue(x, options),
-      this.resolveYValue(y, options)
-    );
+    this.context.drawImage(image, this.resolveX(x, options), this.resolveY(y, options));
     this.postDrawOps(options);
   }
 
@@ -243,9 +228,9 @@ export class Canvas2DGraphics {
   ) {
     this.lineSegments(
       star(
-        this.resolveXValue(cx, options),
-        this.resolveYValue(cy, options),
-        this.resolveScalarValue(size, options),
+        this.resolveX(cx, options),
+        this.resolveY(cy, options),
+        this.resolveScalar(size, options),
         numPoints,
         inset
       ),
@@ -266,14 +251,14 @@ export class Canvas2DGraphics {
   ) {
     this.lineSegments(
       polygon(
-        this.resolveXValue(cx, options),
-        this.resolveYValue(cy, options),
-        this.resolveScalarValue(size, options),
+        this.resolveX(cx, options),
+        this.resolveY(cy, options),
+        this.resolveScalar(size, options),
         numPoints
       ),
       {
         ...options,
-        useNormalCoordinates: false,
+        useNormalCoordinates: false, // signal that normalization is complete
         saveAndRestore: true
       }
     );
@@ -288,29 +273,19 @@ export class Canvas2DGraphics {
     this.assignStylesToContext({ ...this.options.styles, ...styles });
   }
 
-  public text(
-    text: string,
-    cx: number,
-    cy: number,
-    options: DrawingOptions = {}
-  ): void {
+  public text(text: string, cx: number, cy: number, options: DrawingOptions = {}): void {
     this.preDrawOps(options);
     this.context.fillText(
       text,
-      this.resolveXValue(cx, options),
-      this.resolveYValue(cy, options),
+      this.resolveX(cx, options),
+      this.resolveY(cy, options),
       this.resolveOptions('maxTextWidth', options)
     );
     this.postDrawOps(options);
   }
 
   public clear(): void {
-    this.context.clearRect(
-      0,
-      0,
-      this.context.canvas.width,
-      this.context.canvas.height
-    );
+    this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
   }
 
   /**
@@ -337,23 +312,17 @@ export class Canvas2DGraphics {
     canvas.height = canvas.clientHeight * (options.dpr ? DPR : 1);
   }
 
-  protected resolveXValue(value: number, options: DrawingOptions = {}) {
-    const useNormalCoordinates = this.resolveOptions(
-      'useNormalCoordinates',
-      options
-    );
+  protected resolveX(value: number, options: DrawingOptions = {}) {
+    const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.nx(value) : value;
   }
 
-  protected resolveYValue(value: number, options: DrawingOptions = {}) {
-    const useNormalCoordinates = this.resolveOptions(
-      'useNormalCoordinates',
-      options
-    );
+  protected resolveY(value: number, options: DrawingOptions = {}) {
+    const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.ny(value) : value;
   }
 
-  protected resolveScalarValue(value: number, options: DrawingOptions = {}) {
+  protected resolveScalar(value: number, options: DrawingOptions = {}) {
     const scalarNormalization = this.resolveOptions('scalarNormalization', options);
     if (scalarNormalization === 'width') {
       return this.coords.width(value);
@@ -366,14 +335,14 @@ export class Canvas2DGraphics {
 
   protected resolveOptions<T extends keyof DrawingOptions>(
     param: T,
-    options?: DrawingOptions
+    options: DrawingOptions
   ): DrawingOptions[T] {
     return (
       options && param in options ? options[param] : this.options[param]
     ) as DrawingOptions[T];
   }
 
-  protected resolveStyle<T extends keyof Canvas2DStyles>(
+  protected resolveStyles<T extends keyof Canvas2DStyles>(
     param: T,
     styles?: Canvas2DStyles
   ): Canvas2DStyleValues[T] {
@@ -393,15 +362,13 @@ export class Canvas2DGraphics {
    * font style to be changed without needing to keep track of the entire font
    * string
    */
-  protected constructFontString(
-    styles: Canvas2DStyles
-  ): CSSStyleDeclaration['font'] {
-    const fontSize = this.resolveStyle('fontSize', styles);
-    const lineHeight = this.resolveStyle('lineHeight', styles);
-    const fontStyle = this.resolveStyle('fontStyle', styles);
-    const fontFamily = this.resolveStyle('fontFamily', styles);
-    const fontWeight = this.resolveStyle('fontWeight', styles);
-    const fontStretch = this.resolveStyle('fontStretch', styles);
+  protected constructFontString(styles: Canvas2DStyles): CSSStyleDeclaration['font'] {
+    const fontSize = this.resolveStyles('fontSize', styles);
+    const lineHeight = this.resolveStyles('lineHeight', styles);
+    const fontStyle = this.resolveStyles('fontStyle', styles);
+    const fontFamily = this.resolveStyles('fontFamily', styles);
+    const fontWeight = this.resolveStyles('fontWeight', styles);
+    const fontStretch = this.resolveStyles('fontStretch', styles);
     let fontSizePx = typeof fontSize === 'number' ? `${fontSize}px` : undefined;
 
     if (lineHeight && fontSizePx) {
@@ -417,7 +384,7 @@ export class Canvas2DGraphics {
 
   protected assignStylesToContext(styles: Canvas2DStyles) {
     for (const key in styles) {
-      const resolvedStyle = this.resolveStyle(key as keyof Canvas2DStyles, styles);
+      const resolvedStyle = this.resolveStyles(key as keyof Canvas2DStyles, styles);
       if (isUndefined(resolvedStyle)) {
         continue;
       }
@@ -426,15 +393,15 @@ export class Canvas2DGraphics {
       }
       if (key === 'translation') {
         const { x, y } = resolvedStyle as Canvas2DStyleValues['translation'];
-        this.context.translate(this.resolveXValue(x), this.resolveYValue(y));
+        this.context.translate(this.resolveX(x), this.resolveY(y));
       }
       if (key === 'rotation') {
         if (typeof resolvedStyle === 'number') {
           this.context.rotate(resolvedStyle);
         } else {
           const { rotation, origin } = resolvedStyle as RotationWithOrigin;
-          const translateX = this.resolveXValue(origin.x);
-          const translateY = this.resolveYValue(origin.y);
+          const translateX = this.resolveX(origin.x);
+          const translateY = this.resolveY(origin.y);
           this.context.translate(translateX, translateY);
           this.context.rotate(rotation);
           this.context.translate(-translateX, -translateY);
@@ -447,8 +414,8 @@ export class Canvas2DGraphics {
             scale,
             constantLineWidth = false
           } = resolvedStyle as ScaleWithOrigin;
-          const translateX = this.resolveXValue(origin.x);
-          const translateY = this.resolveYValue(origin.y);
+          const translateX = this.resolveX(origin.x);
+          const translateY = this.resolveY(origin.y);
           this.context.translate(translateX, translateY);
           this.context.scale(scale.x, scale.y);
           this.context.translate(-translateX, -translateY);
@@ -470,7 +437,7 @@ export class Canvas2DGraphics {
       // @ts-ignore
       if (key in this.context && typeof this.context[key] !== 'function') {
         // @ts-ignore
-        this.context[key] = this.resolveStyle(key, styles);
+        this.context[key] = this.resolveStyles(key, styles);
       }
     }
     this.context.font = this.constructFontString(styles);

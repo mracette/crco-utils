@@ -2,11 +2,15 @@ import {
   Canvas2DGraphics,
   Canvas2DGraphicsOptions,
   Canvas2DStyles,
+  distance,
   DrawingOptions,
   lerp,
+  polygon,
   TAU,
   Vector2
 } from '..';
+import { quadInOut } from '../math/ease';
+import { random } from '../math/random';
 
 declare module '..' {
   interface DrawingOptions {
@@ -31,24 +35,54 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
 
   public lineSegments(points: number[][], options: DrawingOptions = {}) {
     const numSegments = points.length - 1;
-    // two outlines for each set of points
+    const usingNormal = this.resolveOptions('useNormalCoordinates', options);
+    const alpha = 0.1;
+
+    // the longest line you can draw on the canvas (used to dampen roughness)
+    const diagonalPoints = [
+      this.coords.nxRange[0],
+      this.coords.nyRange[1],
+      this.coords.nxRange[1],
+      this.coords.nyRange[0]
+    ] as const;
+
+    let diagonal;
+    if (!usingNormal) {
+      diagonal = distance(
+        this.coords.nx(diagonalPoints[0]),
+        this.coords.ny(diagonalPoints[1]),
+        this.coords.nx(diagonalPoints[2]),
+        this.coords.ny(diagonalPoints[3])
+      );
+    } else {
+      diagonal = distance(...diagonalPoints);
+    }
+
+    // 2 outlines for each set of points
     for (let j = 0; j < 2; j++) {
       const roughPoints = [];
       for (let i = 0; i < numSegments; i++) {
         const [x0, y0] = points[i];
         const [x1, y1] = points[i + 1];
-        const length = Math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2);
-        const roughnessAdj = this.options.roughness! * length;
+        const length = distance(x0, y0, x1, y1);
+
+        // multiplying by length normalizes roughness - we could be in any number of coordinate systems
+        let roughness = this.options.roughness! * length;
+
+        // the ratio of this segment and the largest that can be drawn without going outside the bounds
+        const size = Math.min(1, length / diagonal);
+
+        // finally dampen the roughness with quadratic easing
+        roughness *= (1 - quadInOut(size)) * alpha;
 
         if (options.closeLoop && i === numSegments - 1) {
-          // roughPoints[i] = roughPoints[1];
           roughPoints.push(roughPoints[0]);
           break;
         }
 
-        // four rough points for each rough line
+        // 4 rough points for each rough line
         for (let k = 0; k < 4; k++) {
-          const randomRadius = Math.random() * roughnessAdj;
+          const randomRadius = Math.random() * roughness;
           const randomRotation = Math.random() * TAU;
           const randomX = randomRadius * Math.cos(randomRotation);
           const randomY = randomRadius * Math.sin(randomRotation);
@@ -75,6 +109,7 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
           roughPoints.push([x, y]);
         }
       }
+
       // only allow fills on the first outline
       const optionsAdjusted: DrawingOptions =
         j === 0 ? options : { ...options, fill: false };
@@ -85,8 +120,7 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
   public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}) {
     const segmentCount = 16;
     const roughnessAdj =
-      (this.options.roughness! * 10 * this.resolveScalarValue(r, options)) /
-      window.innerWidth;
+      (this.options.roughness! * 10 * this.resolveScalar(r, options)) / window.innerWidth;
     for (let n = 0; n < 2; n++) {
       const points = [];
       for (let i = 0; i < segmentCount; i++) {
@@ -96,11 +130,11 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
         const randomY = randomRadius * Math.sin(randomRotation);
         const angle = (TAU * i) / segmentCount;
         const x0 =
-          this.resolveXValue(cx + randomX, options) +
-          Math.cos(angle) * this.resolveScalarValue(r, options);
+          this.resolveX(cx + randomX, options) +
+          Math.cos(angle) * this.resolveScalar(r, options);
         const y0 =
-          this.resolveYValue(cy + randomY, options) +
-          Math.sin(angle) * this.resolveScalarValue(r, options);
+          this.resolveY(cy + randomY, options) +
+          Math.sin(angle) * this.resolveScalar(r, options);
         points.push([x0, y0]);
       }
       points[segmentCount] = points[0];
@@ -115,10 +149,10 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
   }
 
   public rect(x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}) {
-    const xAdj = this.resolveXValue(x);
-    const yAdj = this.resolveYValue(y);
-    const widthAdj = this.resolveScalarValue(width);
-    const heightAdj = this.resolveScalarValue(height);
+    const xAdj = this.resolveX(x);
+    const yAdj = this.resolveY(y);
+    const widthAdj = this.resolveScalar(width);
+    const heightAdj = this.resolveScalar(height);
     const points = [
       [xAdj, yAdj],
       [xAdj + widthAdj, yAdj],
@@ -128,20 +162,10 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
     ];
     this.lineSegments(points, {
       ...options,
-      useNormalCoordinates: false,
+      useNormalCoordinates: false, // signal that normalization is complete
       saveAndRestore: true,
       closeLoop: true
     });
-  }
-
-  public polygon(
-    cx: number,
-    cy: number,
-    size: number,
-    numPoints?: number,
-    options: DrawingOptions = {}
-  ) {
-    super.polygon(cx, cy, size, numPoints, { ...options, closeLoop: true });
   }
 
   private measureTextInContext(text: string, styles?: Canvas2DStyles) {
@@ -154,102 +178,76 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
   }
 
   public text(text: string, cx: number, cy: number, options: DrawingOptions = {}) {
-    const accumulator = 0;
-    const textMeasured = this.measureTextInContext(text, options.styles);
+    const {
+      actualBoundingBoxAscent: top,
+      actualBoundingBoxDescent: bottom,
+      width
+    } = this.measureTextInContext(text, options.styles);
+
     const letters = text.split('');
 
-    const letterHeight =
-      textMeasured.fontBoundingBoxAscent - textMeasured.fontBoundingBoxDescent;
-    const letterHeightNormal = this.coords.yn(letterHeight) - this.coords.yn(0);
+    const letterHeight = top - bottom;
+    const letterHeightNormal = this.coords.nHeight(letterHeight);
 
-    const letterWidth = textMeasured.width / letters.length;
+    const letterWidth = width / letters.length;
     const letterWidthNormal = this.coords.xn(letterWidth) - this.coords.xn(0);
 
-    // this.context.save();
+    const wordLengthNormal = letterWidthNormal * letters.length;
+
     this.applyStyles(options.styles);
 
     letters.forEach((letter, i) => {
-      // this.context.save();
-
-      // apply the current styles to ensure that text measurement is accurate
-      // this.applyStyles(options.styles);
-
-      // const height = bottom - top / 2;
-
-      // const cxCanvas = this.coords.nx(cx);
-      // const cyCanvas = this.coords.ny(cy);
-
-      // let cxAdjusted = cxCanvas;
-      // let cyAdjusted = cyCanvas;
-
-      // switch (this.context.textAlign) {
-      //   case 'left':
-      //     cxAdjusted = cxCanvas + width / 2;
-      //     break;
-      //   case 'right':
-      //     cxAdjusted = cxCanvas - width / 2;
-      //     break;
-      //   case 'center':
-      //     break;
-      //   default:
-      //     console.warn(
-      //       `textAlign option not supported when roughness is enabled: ${this.context.textAlign}`
-      //     );
-      // }
-
-      // switch (this.context.textBaseline) {
-      //   case 'top':
-      //     cyAdjusted = cyCanvas + height / 2;
-      //     break;
-      //   case 'bottom':
-      //     cyAdjusted = cyCanvas - height / 2;
-      //     break;
-      //   case 'middle':
-      //     break;
-      //   default:
-      //     console.warn(
-      //       `textBaseline option not supported when roughness is enabled: ${this.context.textAlign}`
-      //     );
-      // }
-
-      // cxAdjusted = this.coords.xn(cxAdjusted);
-      // cyAdjusted = this.coords.yn(cyAdjusted);
-
-      // this.context.restore();
-
-      let letterX = 0;
+      let letterX;
+      let letterCx;
       if (this.context.textAlign === 'left') {
         letterX = cx + letterWidthNormal * i;
-      }
-      if (this.context.textAlign === 'right') {
-        letterX = -letterWidthNormal * letters.length + cx + letterWidthNormal * i;
-      }
-      if (this.context.textAlign === 'center') {
-        letterX = (-letterWidthNormal * letters.length) / 2 + cx + letterWidthNormal * i;
+        letterCx = letterX + letterWidthNormal / 2;
+      } else if (this.context.textAlign === 'right') {
+        letterX = -wordLengthNormal + cx + letterWidthNormal * (i + 1);
+        letterCx = letterX - letterWidthNormal / 2;
+      } else if (this.context.textAlign === 'center') {
+        letterX = -wordLengthNormal / 2 + cx + letterWidthNormal * (0.5 + i);
+        letterCx = letterX;
+      } else {
+        throw new Error(
+          "textAlign must be 'left', 'right', or 'center' to use rough text"
+        );
       }
 
-      let letterY = 0;
+      const letterY = cy;
+      let letterCy;
       if (this.context.textBaseline === 'top') {
-        letterY = cy - letterHeightNormal / 2;
+        letterCy = letterY - letterHeightNormal / 2;
+      } else if (this.context.textBaseline === 'bottom') {
+        letterCy = letterY - letterHeightNormal / 2;
+      } else if (this.context.textBaseline === 'middle') {
+        letterCy = letterY;
+      } else {
+        throw new Error(
+          "textBaseline must be 'top', 'bottom', or 'middle' to use rough text"
+        );
       }
 
-      super.text(letter, letterX, cy, {
+      const rx = [random(0.1) * letterWidthNormal, random(0.1) * letterWidthNormal];
+      const ry = [random(0.1) * letterHeightNormal, random(0.1) * letterHeightNormal];
+
+      super.text(letter, letterX + rx[0], letterY + ry[0], {
         ...options,
         styles: {
           ...options.styles,
           rotation: {
-            origin: new Vector2(letterX, cy),
-            rotation: this.options.roughness! * 2!
+            origin: new Vector2(letterCx, letterCy),
+            rotation: (this.options.roughness! * Math.PI) / 16
           }
         }
       });
-      super.text(letter, letterX, cy, {
+      super.text(letter, letterX + rx[1], letterY + ry[1], {
         ...options,
         styles: {
           ...options.styles,
           rotation: {
-            origin: new Vector2(letterX, cy),
-            rotation: -this.options.roughness! * 2!
+            origin: new Vector2(letterCx, letterCy),
+            rotation: (-this.options.roughness! * Math.PI) / 16
           }
         }
       });

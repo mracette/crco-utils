@@ -162,4 +162,22 @@ export class CanvasCoordinates {
   height(n?: number): number {
     return this.getBaseHeightMinusPadding() * (n ?? 1);
   }
+
+  /**
+   * Converts a width in canvas coordinates to a normal value
+   * @param width - A width value in canvas units
+   * @returns The equivalent width in normal units
+   */
+  nWidth(width: number): number {
+    return this.xn(width) - this.xn(0);
+  }
+
+  /**
+   * Converts a height in canvas coordinates to a normal value
+   * @param height - A height value in canvas units
+   * @returns The equivalent height in normal units
+   */
+  nHeight(height: number): number {
+    return this.yn(height) - this.yn(0);
+  }
 }

@@ -34,54 +34,24 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
 
   public lineSegments(points: number[][], options: DrawingOptions = {}) {
     const numSegments = points.length - 1;
-    const usingNormal = this.resolveOptions('useNormalCoordinates', options);
-    const alpha = 0.1;
-
-    // the longest line you can draw on the canvas (used to dampen roughness)
-    const diagonalPoints = [
-      this.coords.nxRange[0],
-      this.coords.nyRange[1],
-      this.coords.nxRange[1],
-      this.coords.nyRange[0]
-    ] as const;
-
-    let diagonal;
-    if (!usingNormal) {
-      diagonal = distance(
-        this.coords.nx(diagonalPoints[0]),
-        this.coords.ny(diagonalPoints[1]),
-        this.coords.nx(diagonalPoints[2]),
-        this.coords.ny(diagonalPoints[3])
-      );
-    } else {
-      diagonal = distance(...diagonalPoints);
-    }
-
-    // 2 outlines for each set of points
+    // two outlines for each set of points
     for (let j = 0; j < 2; j++) {
       const roughPoints = [];
       for (let i = 0; i < numSegments; i++) {
         const [x0, y0] = points[i];
         const [x1, y1] = points[i + 1];
-        const length = distance(x0, y0, x1, y1);
-
-        // multiplying by length normalizes roughness - we could be in any number of coordinate systems
-        let roughness = this.options.roughness! * length;
-
-        // the ratio of this segment and the largest that can be drawn without going outside the bounds
-        const size = Math.min(1, length / diagonal);
-
-        // finally dampen the roughness with quadratic easing
-        roughness *= (1 - quadInOut(size)) * alpha;
+        const length = Math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2);
+        const roughnessAdj = this.options.roughness! * length;
 
         if (options.closeLoop && i === numSegments - 1) {
+          // roughPoints[i] = roughPoints[1];
           roughPoints.push(roughPoints[0]);
           break;
         }
 
-        // 4 rough points for each rough line
+        // four rough points for each rough line
         for (let k = 0; k < 4; k++) {
-          const randomRadius = Math.random() * roughness;
+          const randomRadius = Math.random() * roughnessAdj;
           const randomRotation = Math.random() * TAU;
           const randomX = randomRadius * Math.cos(randomRotation);
           const randomY = randomRadius * Math.sin(randomRotation);
@@ -108,7 +78,6 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
           roughPoints.push([x, y]);
         }
       }
-
       // only allow fills on the first outline
       const optionsAdjusted: DrawingOptions =
         j === 0 ? options : { ...options, fill: false };

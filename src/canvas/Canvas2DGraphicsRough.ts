@@ -5,7 +5,6 @@ import {
   distance,
   DrawingOptions,
   lerp,
-  polygon,
   TAU,
   Vector2
 } from '..';
@@ -120,7 +119,7 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
   public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}) {
     const segmentCount = 16;
     const roughnessAdj =
-      (this.options.roughness! * 10 * this.resolveScalar(r, options)) / window.innerWidth;
+      (this.options.roughness! * this.resolveScalar(r, options)) / window.innerWidth;
     for (let n = 0; n < 2; n++) {
       const points = [];
       for (let i = 0; i < segmentCount; i++) {

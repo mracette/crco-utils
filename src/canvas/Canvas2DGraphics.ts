@@ -172,7 +172,6 @@ export class Canvas2DGraphics {
         const x1 = this.resolveX(points[i + 1][0], options);
         const y1 = this.resolveY(points[i + 1][1], options);
         if (x1 === x && y1 === y) {
-          console.log('line to', i);
           this.context.lineTo(x1, y1);
         } else {
           const cx = (x + x1) / 2;

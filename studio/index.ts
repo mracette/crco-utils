@@ -123,7 +123,7 @@ export const init = () => {
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
     const coords = new CanvasCoordinates({
       canvas,
-      // nxRange: [-3, 3],
+      // nxRange: [-3, 3], // TODO figure out why this makes the dampening look so bad
       nxRange: [-1, 1],
       nyRange: [-1, 1],
       padding: 0.1

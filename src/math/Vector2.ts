@@ -11,9 +11,9 @@ export class Vector2 {
     return (this.x ** 2 + this.y ** 2) ** 0.5;
   }
 
-  add(x: number, y: number): void;
-  add(vector: Vector2): void;
-  add(xOrVector: number | Vector2, y?: number) {
+  add(x: number, y: number): Vector2;
+  add(vector: Vector2): Vector2;
+  add(xOrVector: number | Vector2, y?: number): Vector2 {
     if (typeof xOrVector === 'number') {
       this.x += xOrVector;
       if (typeof y === 'number') {

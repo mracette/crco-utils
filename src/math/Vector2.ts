@@ -11,6 +11,28 @@ export class Vector2 {
     return (this.x ** 2 + this.y ** 2) ** 0.5;
   }
 
+  add(x: number, y: number): void;
+  add(vector: Vector2): void;
+  add(xOrVector: number | Vector2, y?: number) {
+    if (typeof xOrVector === 'number') {
+      this.x += xOrVector;
+      if (typeof y === 'number') {
+        this.y += y;
+      }
+    } else {
+      this.x += xOrVector.x;
+      this.y += xOrVector.y;
+    }
+    return this;
+  }
+
+  /**
+   * Computes the angle in radians with respect to the positive x-axis
+   */
+  angle() {
+    return Math.atan2(-this.y, -this.x) + Math.PI;
+  }
+
   clone() {
     return new Vector2(this.x, this.y);
   }

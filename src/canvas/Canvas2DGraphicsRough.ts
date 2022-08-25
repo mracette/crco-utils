@@ -198,6 +198,8 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
 
       const rx = [random(0.1) * letterWidthNormal, random(0.1) * letterWidthNormal];
       const ry = [random(0.1) * letterHeightNormal, random(0.1) * letterHeightNormal];
+      const roughnessAdj =
+        (this.resolveOptions('roughness', options) || 0) * width * 0.05;
 
       super.text(letter, letterX + rx[0], letterY + ry[0], {
         ...options,
@@ -205,7 +207,7 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
           ...options.styles,
           rotation: {
             origin: new Vector2(letterCx, letterCy),
-            rotation: (this.options.roughness! * Math.PI) / 16
+            rotation: (roughnessAdj! * Math.PI) / 16
           }
         }
       });
@@ -215,7 +217,7 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
           ...options.styles,
           rotation: {
             origin: new Vector2(letterCx, letterCy),
-            rotation: (-this.options.roughness! * Math.PI) / 16
+            rotation: (-roughnessAdj! * Math.PI) / 16
           }
         }
       });

@@ -129,7 +129,7 @@ export const init = () => {
       padding: 0.1
     });
     const graphics = rough
-      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords, roughness: 1 })
+      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords, roughness: 0.1 })
       : new Canvas2DGraphics(context, { ...OPTIONS, coords });
     const observer = new ResizeObserver(() => {
       canvas.height = canvas.clientHeight;

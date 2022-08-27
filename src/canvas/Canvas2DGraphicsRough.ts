@@ -33,6 +33,7 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
   }
 
   public lineSegments(points: number[][], options: DrawingOptions = {}) {
+    const roughness = this.resolveOptions('roughness', options) || 0;
     const numSegments = points.length - 1;
     // two outlines for each set of points
     for (let j = 0; j < 2; j++) {
@@ -41,7 +42,7 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
         const [x0, y0] = points[i];
         const [x1, y1] = points[i + 1];
         const length = Math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2);
-        const roughnessAdj = this.options.roughness! * length;
+        const roughnessAdj = roughness * length;
 
         if (options.closeLoop && i === numSegments - 1) {
           // roughPoints[i] = roughPoints[1];
@@ -86,9 +87,9 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
   }
 
   public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}) {
+    const roughness = this.resolveOptions('roughness', options) || 0;
     const segmentCount = 16;
-    const roughnessAdj =
-      (this.options.roughness! * this.resolveScalar(r, options)) / window.innerWidth;
+    const roughnessAdj = (roughness * this.resolveScalar(r, options)) / window.innerWidth;
     for (let n = 0; n < 2; n++) {
       const points = [];
       for (let i = 0; i < segmentCount; i++) {
@@ -196,10 +197,17 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
         );
       }
 
-      const rx = [random(0.1) * letterWidthNormal, random(0.1) * letterWidthNormal];
-      const ry = [random(0.1) * letterHeightNormal, random(0.1) * letterHeightNormal];
       const roughnessAdj =
         (this.resolveOptions('roughness', options) || 0) * width * 0.05;
+
+      const rx = [
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterWidthNormal,
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterWidthNormal
+      ];
+      const ry = [
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterHeightNormal,
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterHeightNormal
+      ];
 
       super.text(letter, letterX + rx[0], letterY + ry[0], {
         ...options,

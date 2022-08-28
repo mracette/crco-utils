@@ -2,13 +2,11 @@ import {
   Canvas2DGraphics,
   Canvas2DGraphicsOptions,
   Canvas2DStyles,
-  distance,
   DrawingOptions,
   lerp,
   TAU,
   Vector2
 } from '..';
-import { quadInOut } from '../math/ease';
 import { random } from '../math/random';
 
 declare module '..' {
@@ -120,8 +118,8 @@ export class Canvas2DGraphicsRough extends Canvas2DGraphics {
   public rect(x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}) {
     const xAdj = this.resolveX(x);
     const yAdj = this.resolveY(y);
-    const widthAdj = this.resolveScalar(width);
-    const heightAdj = this.resolveScalar(height);
+    const widthAdj = this.resolveWidth(width);
+    const heightAdj = this.resolveHeight(height);
     const points = [
       [xAdj, yAdj],
       [xAdj + widthAdj, yAdj],

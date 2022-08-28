@@ -138,8 +138,8 @@ export class Canvas2DGraphics {
     this.context.rect(
       this.resolveX(x, options),
       this.resolveY(y, options),
-      this.resolveScalar(width, options),
-      this.resolveScalar(height, options)
+      this.resolveWidth(width),
+      this.resolveHeight(height)
     );
     this.postDrawOps(options);
   }
@@ -319,6 +319,14 @@ export class Canvas2DGraphics {
   protected resolveY(value: number, options: DrawingOptions = {}) {
     const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.ny(value) : value;
+  }
+
+  protected resolveWidth(value: number) {
+    return this.coords.width(value);
+  }
+
+  protected resolveHeight(value: number) {
+    return this.coords.height(value);
   }
 
   protected resolveScalar(value: number, options: DrawingOptions = {}) {

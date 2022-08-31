@@ -15,6 +15,7 @@ export * from './math/lerp';
 export * from './math/mod';
 export * from './math/normalize';
 export * from './math/Vector2';
+export * from './math/mulberry32';
 export * from './dom/aspectRatioResize';
 export * from './geometry/equilateralTriangle';
 export * from './geometry/isocelesTriangle';

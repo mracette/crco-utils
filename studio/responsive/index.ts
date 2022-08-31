@@ -1,8 +1,4 @@
-import {
-  Canvas2DGraphics,
-  Canvas2DGraphicsRough,
-  CanvasCoordinates
-} from '../../src';
+import { Canvas2DGraphics, CanvasCoordinates } from '../../src';
 import { Canvas2DGraphicsOptions } from '../../src';
 import { drawCircle } from '../draw/circle';
 import { drawDiamond } from '../draw/diamond';
@@ -40,9 +36,11 @@ export const init = () => {
       nxRange: [-3, 3],
       nyRange: [-1, 1]
     });
-    const graphics = rough
-      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords })
-      : new Canvas2DGraphics(context, { ...OPTIONS, coords });
+    const graphics = new Canvas2DGraphics(context, {
+      ...OPTIONS,
+      coords,
+      roughness: rough ? 0.1 : 0
+    });
     const observer = new ResizeObserver(() => {
       canvas.height = canvas.clientHeight;
       canvas.width = canvas.clientWidth;

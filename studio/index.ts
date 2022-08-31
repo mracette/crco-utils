@@ -13,10 +13,10 @@ import {
   Canvas2DGraphics,
   Canvas2DGraphicsOptions,
   CanvasCoordinates,
+  mulberry32,
   TAU,
   Vector2
 } from '../src';
-import { Canvas2DGraphicsRough } from '../src/canvas/Canvas2DGraphicsRough';
 
 const OPTIONS: Canvas2DGraphicsOptions = {
   useNormalCoordinates: true,
@@ -130,6 +130,7 @@ export const init = () => {
     });
     const graphics = new Canvas2DGraphics(context, {
       ...OPTIONS,
+      random: mulberry32(0xb7e15162),
       coords,
       roughness: rough ? 0.1 : 0
     });

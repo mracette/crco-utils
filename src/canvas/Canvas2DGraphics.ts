@@ -81,7 +81,7 @@ export interface DrawingOptions {
   closeLoop?: boolean;
   /** @defaultValue false */
   fill?: boolean;
-  /** @defaultValue undefined */
+  /** @defaultValue -1 */
   maxTextWidth?: number;
   /** @defaultValue true */
   saveAndRestore?: boolean;
@@ -97,6 +97,8 @@ export interface DrawingOptions {
   scalarNormalization?: 'width' | 'height' | false;
   /** @defaultValue false */
   skipApplyStyles?: boolean;
+  /** @defaultValue Math.random */
+  random?: () => number;
 }
 
 export interface InitializationOptions {
@@ -131,14 +133,15 @@ export class Canvas2DGraphics {
       beginPath: true,
       closePath: false,
       fill: false,
-      maxTextWidth: undefined,
+      maxTextWidth: -1,
       saveAndRestore: true,
       stroke: false,
       useNormalCoordinates: false,
       scalarNormalization: false,
       skipApplyStyles: false,
       roughness: 0,
-      closeLoop: false
+      closeLoop: false,
+      random: Math.random
     };
 
     this.options = { ...defaults, ...options };
@@ -225,6 +228,7 @@ export class Canvas2DGraphics {
 
   private lineSegmentsRough(points: number[][], options: DrawingOptions) {
     const roughness = this.resolveOptions('roughness', options) || 0;
+    const random = this.resolveOptions('random', options);
     const numSegments = points.length - 1;
     // two outlines for each set of points
     for (let j = 0; j < 2; j++) {
@@ -237,8 +241,8 @@ export class Canvas2DGraphics {
 
         // four rough points for each rough line
         for (let k = 0; k < 4; k++) {
-          const randomRadius = Math.random() * roughnessAdj;
-          const randomRotation = Math.random() * TAU;
+          const randomRadius = random() * roughnessAdj;
+          const randomRotation = random() * TAU;
           const randomX = randomRadius * Math.cos(randomRotation);
           const randomY = randomRadius * Math.sin(randomRotation);
           let x = NaN;
@@ -334,14 +338,15 @@ export class Canvas2DGraphics {
   }
 
   private circleRough(cx: number, cy: number, r: number, options: DrawingOptions) {
-    const roughness = this.resolveOptions('roughness', options) || 0;
+    const roughness = this.resolveOptions('roughness', options);
+    const random = this.resolveOptions('random', options);
     const segmentCount = 16;
     const roughnessAdj = (roughness * this.resolveScalar(r, options)) / window.innerWidth;
     for (let n = 0; n < 2; n++) {
       const points = [];
       for (let i = 0; i < segmentCount; i++) {
-        const randomRadius = Math.random() * roughnessAdj;
-        const randomRotation = Math.random() * TAU;
+        const randomRadius = random() * roughnessAdj;
+        const randomRotation = random() * TAU;
         const randomX = randomRadius * Math.cos(randomRotation);
         const randomY = randomRadius * Math.sin(randomRotation);
         const angle = (TAU * i) / segmentCount;
@@ -448,11 +453,12 @@ export class Canvas2DGraphics {
     options: DrawingOptions = {}
   ): void {
     this.preDrawOps(options);
+    const maxWidth = this.resolveOptions('maxTextWidth', options);
     this.context.fillText(
       text,
       this.resolveX(cx, options),
       this.resolveY(cy, options),
-      this.resolveOptions('maxTextWidth', options)
+      maxWidth > 0 ? maxWidth : undefined
     );
     this.postDrawOps(options);
   }
@@ -464,7 +470,8 @@ export class Canvas2DGraphics {
       width
     } = this.measureTextInContext(text, options.styles);
 
-    const roughness = this.resolveOptions('roughness', options) ?? 0;
+    const roughness = this.resolveOptions('roughness', options);
+    const resolvedRandom = this.resolveOptions('random', options);
 
     const letters = text.split('');
 
@@ -513,12 +520,12 @@ export class Canvas2DGraphics {
       const roughnessAdj = roughness * width * 0.05;
 
       const rx = [
-        random(Math.min(0.4, roughnessAdj / 6.5)) * letterWidthNormal,
-        random(Math.min(0.4, roughnessAdj / 6.5)) * letterWidthNormal
+        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterWidthNormal,
+        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterWidthNormal
       ];
       const ry = [
-        random(Math.min(0.4, roughnessAdj / 6.5)) * letterHeightNormal,
-        random(Math.min(0.4, roughnessAdj / 6.5)) * letterHeightNormal
+        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterHeightNormal,
+        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterHeightNormal
       ];
 
       this.textSmooth(letter, letterX + rx[0], letterY + ry[0], {
@@ -604,10 +611,14 @@ export class Canvas2DGraphics {
   protected resolveOptions<T extends keyof DrawingOptions>(
     param: T,
     options: DrawingOptions
-  ): DrawingOptions[T] {
-    return (
-      options && param in options ? options[param] : this.options[param]
-    ) as DrawingOptions[T];
+  ): NonNullable<DrawingOptions[T]> {
+    const resolved = options && param in options ? options[param] : this.options[param];
+    // eslint-disable-next-line no-console
+    console.assert(
+      resolved != undefined,
+      `A value for ${resolved} could not be resolved.`
+    );
+    return resolved as NonNullable<DrawingOptions[T]>;
   }
 
   protected resolveStyles<T extends keyof Canvas2DStyles>(

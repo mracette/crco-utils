@@ -128,9 +128,11 @@ export const init = () => {
       nyRange: [-1, 1],
       padding: 0.1
     });
-    const graphics = rough
-      ? new Canvas2DGraphicsRough(context, { ...OPTIONS, coords, roughness: 0.1 })
-      : new Canvas2DGraphics(context, { ...OPTIONS, coords });
+    const graphics = new Canvas2DGraphics(context, {
+      ...OPTIONS,
+      coords,
+      roughness: rough ? 0.1 : 0
+    });
     const observer = new ResizeObserver(() => {
       canvas.height = canvas.clientHeight;
       canvas.width = canvas.clientWidth;

@@ -1,4 +1,13 @@
-import { CanvasCoordinates, deepClone, isUndefined, polygon, star, TAU } from '..';
+import {
+  CanvasCoordinates,
+  deepClone,
+  isUndefined,
+  lerp,
+  polygon,
+  random,
+  star,
+  TAU
+} from '..';
 import { DPR } from '../js/constants';
 import { Vector2 } from '../math/Vector2';
 
@@ -69,6 +78,8 @@ export interface DrawingOptions {
   /** @defaultValue false */
   closePath?: boolean;
   /** @defaultValue false */
+  closeLoop?: boolean;
+  /** @defaultValue false */
   fill?: boolean;
   /** @defaultValue undefined */
   maxTextWidth?: number;
@@ -80,6 +91,8 @@ export interface DrawingOptions {
   styles?: Canvas2DStyles;
   /** @defaultValue false */
   useNormalCoordinates?: boolean;
+  /** @defaultValue 0 */
+  roughness?: number;
   /** @defaultValue false */
   scalarNormalization?: 'width' | 'height' | false;
   /** @defaultValue false */
@@ -123,7 +136,9 @@ export class Canvas2DGraphics {
       stroke: false,
       useNormalCoordinates: false,
       scalarNormalization: false,
-      skipApplyStyles: false
+      skipApplyStyles: false,
+      roughness: 0,
+      closeLoop: false
     };
 
     this.options = { ...defaults, ...options };
@@ -133,7 +148,48 @@ export class Canvas2DGraphics {
     };
   }
 
-  public rect(x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}): void {
+  public rect(x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}) {
+    const roughness = this.resolveOptions('roughness', options);
+    if (roughness) {
+      this.rectRough(x, y, width, height, options);
+    } else {
+      this.rectSmooth(x, y, width, height, options);
+    }
+  }
+
+  private rectRough(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    options: DrawingOptions
+  ) {
+    const xAdj = this.resolveX(x);
+    const yAdj = this.resolveY(y);
+    const widthAdj = this.resolveWidth(width);
+    const heightAdj = this.resolveHeight(height);
+    const points = [
+      [xAdj, yAdj],
+      [xAdj + widthAdj, yAdj],
+      [xAdj + widthAdj, yAdj + heightAdj],
+      [xAdj, yAdj + heightAdj],
+      [xAdj, yAdj]
+    ];
+    this.lineSegments(points, {
+      ...options,
+      useNormalCoordinates: false, // signal that normalization is complete
+      saveAndRestore: true,
+      closeLoop: true
+    });
+  }
+
+  private rectSmooth(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    options: DrawingOptions
+  ): void {
     this.preDrawOps(options);
     this.context.rect(
       this.resolveX(x, options),
@@ -144,7 +200,16 @@ export class Canvas2DGraphics {
     this.postDrawOps(options);
   }
 
-  public lineSegments(points: number[][], options: DrawingOptions = {}): void {
+  public lineSegments(points: number[][], options: DrawingOptions = {}) {
+    const roughness = this.resolveOptions('roughness', options);
+    if (roughness) {
+      this.lineSegmentsRough(points, options);
+    } else {
+      this.lineSegmentsSmooth(points, options);
+    }
+  }
+
+  private lineSegmentsSmooth(points: number[][], options: DrawingOptions): void {
     this.preDrawOps(options);
     for (let i = 0; i < points.length; i++) {
       const x = this.resolveX(points[i][0], options);
@@ -156,6 +221,59 @@ export class Canvas2DGraphics {
       }
     }
     this.postDrawOps(options);
+  }
+
+  private lineSegmentsRough(points: number[][], options: DrawingOptions) {
+    const roughness = this.resolveOptions('roughness', options) || 0;
+    const numSegments = points.length - 1;
+    // two outlines for each set of points
+    for (let j = 0; j < 2; j++) {
+      const roughPoints = [];
+      for (let i = 0; i < numSegments; i++) {
+        const [x0, y0] = points[i];
+        const [x1, y1] = points[i + 1];
+        const length = Math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2);
+        const roughnessAdj = roughness * length;
+
+        // four rough points for each rough line
+        for (let k = 0; k < 4; k++) {
+          const randomRadius = Math.random() * roughnessAdj;
+          const randomRotation = Math.random() * TAU;
+          const randomX = randomRadius * Math.cos(randomRotation);
+          const randomY = randomRadius * Math.sin(randomRotation);
+          let x = NaN;
+          let y = NaN;
+          if (k === 0) {
+            x = x0 + randomX;
+            y = y0 + randomY;
+          }
+          if (k === 1) {
+            const distance = 0.5;
+            x = lerp(distance, x0, x1) + randomX;
+            y = lerp(distance, y0, y1) + randomY;
+          }
+          if (k === 2) {
+            const distance = 0.75;
+            x = lerp(distance, x0, x1) + randomX;
+            y = lerp(distance, y0, y1) + randomY;
+          }
+          if (k === 3) {
+            if (options.closeLoop && i === numSegments - 1) {
+              x = roughPoints[0][0];
+              y = roughPoints[0][1];
+            } else {
+              x = x1 + randomX;
+              y = y1 + randomY;
+            }
+          }
+          roughPoints.push([x, y]);
+        }
+      }
+      // only allow fills on the first outline
+      const optionsAdjusted: DrawingOptions =
+        j === 0 ? options : { ...options, fill: false };
+      this.curveThroughPoints(roughPoints, optionsAdjusted);
+    }
   }
 
   /**
@@ -189,12 +307,21 @@ export class Canvas2DGraphics {
     this.postDrawOps(options);
   }
 
+  public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}) {
+    const roughness = this.resolveOptions('roughness', options);
+    if (roughness) {
+      this.circleRough(cx, cy, r, options);
+    } else {
+      this.circleSmooth(cx, cy, r, options);
+    }
+  }
+
   /**
    * @defaultValue options.beginPath = true
    * @defaultValue options.saveAndRestore = true
    * @defaultValue options.fill = true
    */
-  public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}): void {
+  private circleSmooth(cx: number, cy: number, r: number, options: DrawingOptions): void {
     this.preDrawOps(options);
     this.context.arc(
       this.resolveX(cx, options),
@@ -204,6 +331,37 @@ export class Canvas2DGraphics {
       TAU
     );
     this.postDrawOps(options);
+  }
+
+  private circleRough(cx: number, cy: number, r: number, options: DrawingOptions) {
+    const roughness = this.resolveOptions('roughness', options) || 0;
+    const segmentCount = 16;
+    const roughnessAdj = (roughness * this.resolveScalar(r, options)) / window.innerWidth;
+    for (let n = 0; n < 2; n++) {
+      const points = [];
+      for (let i = 0; i < segmentCount; i++) {
+        const randomRadius = Math.random() * roughnessAdj;
+        const randomRotation = Math.random() * TAU;
+        const randomX = randomRadius * Math.cos(randomRotation);
+        const randomY = randomRadius * Math.sin(randomRotation);
+        const angle = (TAU * i) / segmentCount;
+        const x0 =
+          this.resolveX(cx + randomX, options) +
+          Math.cos(angle) * this.resolveScalar(r, options);
+        const y0 =
+          this.resolveY(cy + randomY, options) +
+          Math.sin(angle) * this.resolveScalar(r, options);
+        points.push([x0, y0]);
+      }
+      points[segmentCount] = points[0];
+      points[segmentCount + 1] = points[1];
+      this.curveThroughPoints(points, {
+        ...options,
+        useNormalCoordinates: false, // signal that normalization is complete
+        saveAndRestore: true,
+        closeLoop: true // ensures shape can be filled
+      });
+    }
   }
 
   public drawImage(
@@ -248,6 +406,7 @@ export class Canvas2DGraphics {
     numPoints?: number,
     options: DrawingOptions = {}
   ) {
+    const roughness = this.resolveOptions('roughness', options);
     this.lineSegments(
       polygon(
         this.resolveX(cx, options),
@@ -258,7 +417,8 @@ export class Canvas2DGraphics {
       {
         ...options,
         useNormalCoordinates: false, // signal that normalization is complete
-        saveAndRestore: true
+        saveAndRestore: true,
+        closeLoop: Boolean(roughness)
       }
     );
   }
@@ -272,7 +432,21 @@ export class Canvas2DGraphics {
     this.assignStylesToContext({ ...this.options.styles, ...styles });
   }
 
-  public text(text: string, cx: number, cy: number, options: DrawingOptions = {}): void {
+  public text(text: string, cx: number, cy: number, options: DrawingOptions = {}) {
+    const roughness = this.resolveOptions('roughness', options);
+    if (roughness) {
+      this.textRough(text, cx, cy, options);
+    } else {
+      this.textSmooth(text, cx, cy, options);
+    }
+  }
+
+  private textSmooth(
+    text: string,
+    cx: number,
+    cy: number,
+    options: DrawingOptions = {}
+  ): void {
     this.preDrawOps(options);
     this.context.fillText(
       text,
@@ -281,6 +455,93 @@ export class Canvas2DGraphics {
       this.resolveOptions('maxTextWidth', options)
     );
     this.postDrawOps(options);
+  }
+
+  private textRough(text: string, cx: number, cy: number, options: DrawingOptions = {}) {
+    const {
+      actualBoundingBoxAscent: top,
+      actualBoundingBoxDescent: bottom,
+      width
+    } = this.measureTextInContext(text, options.styles);
+
+    const roughness = this.resolveOptions('roughness', options) ?? 0;
+
+    const letters = text.split('');
+
+    const letterHeight = top - bottom;
+    const letterHeightNormal = this.coords.nHeight(letterHeight);
+
+    const letterWidth = width / letters.length;
+    const letterWidthNormal = this.coords.xn(letterWidth) - this.coords.xn(0);
+
+    const wordLengthNormal = letterWidthNormal * letters.length;
+
+    this.applyStyles(options.styles);
+
+    letters.forEach((letter, i) => {
+      let letterX;
+      let letterCx;
+      if (this.context.textAlign === 'left') {
+        letterX = cx + letterWidthNormal * i;
+        letterCx = letterX + letterWidthNormal / 2;
+      } else if (this.context.textAlign === 'right') {
+        letterX = -wordLengthNormal + cx + letterWidthNormal * (i + 1);
+        letterCx = letterX - letterWidthNormal / 2;
+      } else if (this.context.textAlign === 'center') {
+        letterX = -wordLengthNormal / 2 + cx + letterWidthNormal * (0.5 + i);
+        letterCx = letterX;
+      } else {
+        throw new Error(
+          "textAlign must be 'left', 'right', or 'center' to use rough text"
+        );
+      }
+
+      const letterY = cy;
+      let letterCy;
+      if (this.context.textBaseline === 'top') {
+        letterCy = letterY - letterHeightNormal / 2;
+      } else if (this.context.textBaseline === 'bottom') {
+        letterCy = letterY - letterHeightNormal / 2;
+      } else if (this.context.textBaseline === 'middle') {
+        letterCy = letterY;
+      } else {
+        throw new Error(
+          "textBaseline must be 'top', 'bottom', or 'middle' to use rough text"
+        );
+      }
+
+      const roughnessAdj = roughness * width * 0.05;
+
+      const rx = [
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterWidthNormal,
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterWidthNormal
+      ];
+      const ry = [
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterHeightNormal,
+        random(Math.min(0.4, roughnessAdj / 6.5)) * letterHeightNormal
+      ];
+
+      this.textSmooth(letter, letterX + rx[0], letterY + ry[0], {
+        ...options,
+        styles: {
+          ...options.styles,
+          rotation: {
+            origin: new Vector2(letterCx, letterCy),
+            rotation: (roughnessAdj! * Math.PI) / 16
+          }
+        }
+      });
+      this.textSmooth(letter, letterX + rx[1], letterY + ry[1], {
+        ...options,
+        styles: {
+          ...options.styles,
+          rotation: {
+            origin: new Vector2(letterCx, letterCy),
+            rotation: (-roughnessAdj! * Math.PI) / 16
+          }
+        }
+      });
+    });
   }
 
   public clear(): void {
@@ -475,5 +736,14 @@ export class Canvas2DGraphics {
     if (this.resolveOptions('saveAndRestore', options)) {
       this.context.restore();
     }
+  }
+
+  private measureTextInContext(text: string, styles?: Canvas2DStyles) {
+    this.context.save();
+    // apply the current styles to ensure that text measurement is accurate
+    this.applyStyles(styles);
+    const measurement = this.context.measureText(text);
+    this.context.restore();
+    return measurement;
   }
 }

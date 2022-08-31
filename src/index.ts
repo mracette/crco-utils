@@ -1,5 +1,4 @@
 export * from './canvas/Canvas2DGraphics';
-export * from './canvas/Canvas2DGraphicsRough';
 export * from './canvas/CanvasCoordinates';
 export * from './js/constants';
 export * from './js/isEveryUndefined';

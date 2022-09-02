@@ -5,11 +5,12 @@ export function random<T>(
   minOrRandom: number | (() => number) = 0,
   random = Math.random
 ): T | number {
-  if (Array.isArray(optionsOrMax) && typeof minOrRandom === 'function') {
-    return optionsOrMax[Math.floor(random() * optionsOrMax.length)];
+  if (Array.isArray(optionsOrMax)) {
+    const randomFunction = typeof minOrRandom === 'function' ? minOrRandom : Math.random;
+    return optionsOrMax[Math.floor(randomFunction() * optionsOrMax.length)];
   } else if (
-    typeof minOrRandom === 'number' &&
     typeof optionsOrMax === 'number' &&
+    typeof minOrRandom === 'number' &&
     typeof random === 'function'
   ) {
     return minOrRandom + random() * (optionsOrMax - minOrRandom);

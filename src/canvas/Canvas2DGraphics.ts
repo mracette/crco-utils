@@ -359,32 +359,32 @@ export class Canvas2DGraphics {
 
     const rasterRadius = this.resolveScalar(r, options);
     const roughnessAdj = clamp(
-      2000 * r * roughness - rasterRadius * r * 0.05,
-      roughness * rasterRadius * 0.5,
-      roughness * rasterRadius * 1
+      50 * r * roughness - rasterRadius * r * 0.05,
+      roughness * rasterRadius * 0.05,
+      roughness * rasterRadius * 0.2
     );
 
-    // for (let n = 0; n < 2; n++) {
-    const points = [];
-    for (let i = 0; i < segmentCount; i++) {
-      const randomRadius = random() * roughnessAdj;
-      const randomRotation = random() * TAU;
-      const randomX = randomRadius * Math.cos(randomRotation);
-      const randomY = randomRadius * Math.sin(randomRotation);
-      const angle = (TAU * i) / segmentCount;
-      const x0 = randomX + this.resolveX(cx, options) + Math.cos(angle) * rasterRadius;
-      const y0 = randomY + this.resolveY(cy, options) + Math.sin(angle) * rasterRadius;
-      points.push([x0, y0]);
+    for (let n = 0; n < 2; n++) {
+      const points = [];
+      for (let i = 0; i < segmentCount; i++) {
+        const randomRadius = random() * roughnessAdj;
+        const randomRotation = random() * TAU;
+        const randomX = randomRadius * Math.cos(randomRotation);
+        const randomY = randomRadius * Math.sin(randomRotation);
+        const angle = (TAU * i) / segmentCount;
+        const x0 = randomX + this.resolveX(cx, options) + Math.cos(angle) * rasterRadius;
+        const y0 = randomY + this.resolveY(cy, options) + Math.sin(angle) * rasterRadius;
+        points.push([x0, y0]);
+      }
+      points[segmentCount] = points[0];
+      points[segmentCount + 1] = points[1];
+      this.curveThroughPoints(points, {
+        ...options,
+        useNormalCoordinates: false, // signal that normalization is complete
+        saveAndRestore: true,
+        closeLoop: true // ensures shape can be filled
+      });
     }
-    points[segmentCount] = points[0];
-    points[segmentCount + 1] = points[1];
-    this.curveThroughPoints(points, {
-      ...options,
-      useNormalCoordinates: false, // signal that normalization is complete
-      saveAndRestore: true,
-      closeLoop: true // ensures shape can be filled
-    });
-    // }
   }
 
   public drawImage(
@@ -482,38 +482,40 @@ export class Canvas2DGraphics {
   }
 
   private textRough(text: string, cx: number, cy: number, options: DrawingOptions = {}) {
+    const roughness = this.resolveOptions('roughness', options);
+    const resolvedRandom = this.resolveOptions('random', options);
+
     const {
       actualBoundingBoxAscent: top,
       actualBoundingBoxDescent: bottom,
       width
     } = this.measureTextInContext(text, options.styles);
 
-    const roughness = this.resolveOptions('roughness', options);
-    const resolvedRandom = this.resolveOptions('random', options);
-
+    const wordWidthNormal = this.coords.nWidth(width);
+    const wordHeight = top - bottom;
+    const wordHeightNormal = this.coords.nHeight(wordHeight);
     const letters = text.split('');
 
-    const letterHeight = top - bottom;
-    const letterHeightNormal = this.coords.nHeight(letterHeight);
+    const resolvedTextAlign = this.resolveStyles('textAlign');
+    const resolvedTextBaseline = this.resolveStyles('textBaseline');
 
-    const letterWidth = width / letters.length;
-    const letterWidthNormal = this.coords.xn(letterWidth) - this.coords.xn(0);
-
-    const wordLengthNormal = letterWidthNormal * letters.length;
-
-    this.applyStyles(options.styles);
+    let accumulatedWidth = 0;
 
     letters.forEach((letter, i) => {
       let letterX;
       let letterCx;
-      if (this.context.textAlign === 'left') {
-        letterX = cx + letterWidthNormal * i;
+      const metrics = this.measureTextInContext(letter, {
+        ...options.styles
+      });
+      const letterWidthNormal = this.coords.nWidth(metrics.width);
+      if (resolvedTextAlign === 'left') {
+        letterX = cx + accumulatedWidth;
         letterCx = letterX + letterWidthNormal / 2;
-      } else if (this.context.textAlign === 'right') {
-        letterX = -wordLengthNormal + cx + letterWidthNormal * (i + 1);
+      } else if (resolvedTextAlign === 'right') {
+        letterX = -wordWidthNormal + cx + accumulatedWidth;
         letterCx = letterX - letterWidthNormal / 2;
-      } else if (this.context.textAlign === 'center') {
-        letterX = -wordLengthNormal / 2 + cx + letterWidthNormal * (0.5 + i);
+      } else if (resolvedTextAlign === 'center') {
+        letterX = -wordWidthNormal / 2 + cx + accumulatedWidth;
         letterCx = letterX;
       } else {
         throw new Error(
@@ -521,13 +523,15 @@ export class Canvas2DGraphics {
         );
       }
 
+      accumulatedWidth += letterWidthNormal * 1.1;
+
       const letterY = cy;
       let letterCy;
-      if (this.context.textBaseline === 'top') {
-        letterCy = letterY - letterHeightNormal / 2;
-      } else if (this.context.textBaseline === 'bottom') {
-        letterCy = letterY - letterHeightNormal / 2;
-      } else if (this.context.textBaseline === 'middle') {
+      if (resolvedTextBaseline === 'top') {
+        letterCy = letterY - wordHeightNormal / 2;
+      } else if (resolvedTextBaseline === 'bottom') {
+        letterCy = letterY - wordHeightNormal / 2;
+      } else if (resolvedTextBaseline === 'middle') {
         letterCy = letterY;
       } else {
         throw new Error(
@@ -535,15 +539,13 @@ export class Canvas2DGraphics {
         );
       }
 
-      const roughnessAdj = roughness * 5;
-
       const rx = [
-        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterWidthNormal,
-        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterWidthNormal
+        random(Math.min(0.4, roughness / 20), 0, resolvedRandom),
+        random(Math.min(0.4, roughness / 20), 0, resolvedRandom)
       ];
       const ry = [
-        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterHeightNormal,
-        random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterHeightNormal
+        random(Math.min(0.4, roughness / 20), 0, resolvedRandom),
+        random(Math.min(0.4, roughness / 20), 0, resolvedRandom)
       ];
 
       this.textSmooth(letter, letterX + rx[0], letterY + ry[0], {
@@ -552,7 +554,7 @@ export class Canvas2DGraphics {
           ...options.styles,
           rotation: {
             origin: new Vector2(letterCx, letterCy),
-            rotation: (roughnessAdj! * Math.PI) / 16
+            rotation: (roughness! * Math.PI) / 16
           }
         },
         saveAndRestore: true
@@ -563,7 +565,7 @@ export class Canvas2DGraphics {
           ...options.styles,
           rotation: {
             origin: new Vector2(letterCx, letterCy),
-            rotation: (-roughnessAdj! * Math.PI) / 16
+            rotation: (-roughness! * Math.PI) / 16
           }
         },
         saveAndRestore: true

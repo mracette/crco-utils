@@ -22,7 +22,7 @@ export const drawResponsiveCircles = (graphics: Canvas2DGraphics) => {
   }
 };
 
-const CHARS = 'oSKJ01kSSLasjkiuennfalkj3jJIODFlkj';
+const CHARS = 'summoningsummoning';
 
 export const drawResponsiveText = (graphics: Canvas2DGraphics) => {
   const [y0, y1] = graphics.coords.nyRange;

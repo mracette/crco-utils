@@ -131,7 +131,7 @@ export const init = () => {
       ...OPTIONS,
       random: mulberry32(0xb7e15162),
       coords,
-      roughness: rough ? 0.1 : 0
+      roughness: rough ? 0.5 : 0
     });
     const observer = new ResizeObserver(() => {
       canvas.height = canvas.clientHeight;

@@ -11,6 +11,7 @@ export * from './math/random';
 export * from './math/distance';
 export * from './math/clamp';
 export * from './math/constants';
+export * from './math/magnitude';
 export * from './math/lerp';
 export * from './math/mod';
 export * from './math/normalize';

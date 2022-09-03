@@ -1,8 +1,10 @@
 import {
   CanvasCoordinates,
+  clamp,
   deepClone,
   isUndefined,
   lerp,
+  magnitude,
   polygon,
   random,
   star,
@@ -126,7 +128,9 @@ export class Canvas2DGraphics {
 
     const defaultStyles: Canvas2DStyles = {
       fontFamily: 'sans-serif',
-      fontSize: 16
+      fontSize: 16,
+      textAlign: 'center',
+      textBaseline: 'middle'
     };
 
     const defaults: DrawingOptions = {
@@ -227,7 +231,7 @@ export class Canvas2DGraphics {
   }
 
   private lineSegmentsRough(points: number[][], options: DrawingOptions) {
-    const roughness = this.resolveOptions('roughness', options) || 0;
+    const roughness = this.resolveOptions('roughness', options);
     const random = this.resolveOptions('random', options);
     const numSegments = points.length - 1;
     // two outlines for each set of points
@@ -236,8 +240,19 @@ export class Canvas2DGraphics {
       for (let i = 0; i < numSegments; i++) {
         const [x0, y0] = points[i];
         const [x1, y1] = points[i + 1];
-        const length = Math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2);
-        const roughnessAdj = roughness * length;
+
+        const rasterSize = magnitude(
+          this.coords.nx(x0) - this.coords.nx(x1),
+          this.coords.ny(y0) - this.coords.ny(y1)
+        );
+        const normalSize = magnitude(x0 - x1, y0 - y1);
+
+        // The adjusted value needs to be normalized, but also decrease as a function of the rasterSize
+        const roughnessAdj = clamp(
+          normalSize * roughness - rasterSize * normalSize * 0.000035,
+          roughness * normalSize * 0.1,
+          roughness * normalSize * 0.25
+        );
 
         // four rough points for each rough line
         for (let k = 0; k < 4; k++) {
@@ -341,32 +356,35 @@ export class Canvas2DGraphics {
     const roughness = this.resolveOptions('roughness', options);
     const random = this.resolveOptions('random', options);
     const segmentCount = 16;
-    const roughnessAdj = (roughness * this.resolveScalar(r, options)) / window.innerWidth;
-    for (let n = 0; n < 2; n++) {
-      const points = [];
-      for (let i = 0; i < segmentCount; i++) {
-        const randomRadius = random() * roughnessAdj;
-        const randomRotation = random() * TAU;
-        const randomX = randomRadius * Math.cos(randomRotation);
-        const randomY = randomRadius * Math.sin(randomRotation);
-        const angle = (TAU * i) / segmentCount;
-        const x0 =
-          this.resolveX(cx + randomX, options) +
-          Math.cos(angle) * this.resolveScalar(r, options);
-        const y0 =
-          this.resolveY(cy + randomY, options) +
-          Math.sin(angle) * this.resolveScalar(r, options);
-        points.push([x0, y0]);
-      }
-      points[segmentCount] = points[0];
-      points[segmentCount + 1] = points[1];
-      this.curveThroughPoints(points, {
-        ...options,
-        useNormalCoordinates: false, // signal that normalization is complete
-        saveAndRestore: true,
-        closeLoop: true // ensures shape can be filled
-      });
+
+    const rasterRadius = this.resolveScalar(r, options);
+    const roughnessAdj = clamp(
+      2000 * r * roughness - rasterRadius * r * 0.05,
+      roughness * rasterRadius * 0.5,
+      roughness * rasterRadius * 1
+    );
+
+    // for (let n = 0; n < 2; n++) {
+    const points = [];
+    for (let i = 0; i < segmentCount; i++) {
+      const randomRadius = random() * roughnessAdj;
+      const randomRotation = random() * TAU;
+      const randomX = randomRadius * Math.cos(randomRotation);
+      const randomY = randomRadius * Math.sin(randomRotation);
+      const angle = (TAU * i) / segmentCount;
+      const x0 = randomX + this.resolveX(cx, options) + Math.cos(angle) * rasterRadius;
+      const y0 = randomY + this.resolveY(cy, options) + Math.sin(angle) * rasterRadius;
+      points.push([x0, y0]);
     }
+    points[segmentCount] = points[0];
+    points[segmentCount + 1] = points[1];
+    this.curveThroughPoints(points, {
+      ...options,
+      useNormalCoordinates: false, // signal that normalization is complete
+      saveAndRestore: true,
+      closeLoop: true // ensures shape can be filled
+    });
+    // }
   }
 
   public drawImage(
@@ -517,7 +535,7 @@ export class Canvas2DGraphics {
         );
       }
 
-      const roughnessAdj = roughness * width * 0.05;
+      const roughnessAdj = roughness * 5;
 
       const rx = [
         random(Math.min(0.4, roughnessAdj / 6.5), 0, resolvedRandom) * letterWidthNormal,
@@ -536,7 +554,8 @@ export class Canvas2DGraphics {
             origin: new Vector2(letterCx, letterCy),
             rotation: (roughnessAdj! * Math.PI) / 16
           }
-        }
+        },
+        saveAndRestore: true
       });
       this.textSmooth(letter, letterX + rx[1], letterY + ry[1], {
         ...options,
@@ -546,7 +565,8 @@ export class Canvas2DGraphics {
             origin: new Vector2(letterCx, letterCy),
             rotation: (-roughnessAdj! * Math.PI) / 16
           }
-        }
+        },
+        saveAndRestore: true
       });
     });
   }
@@ -618,6 +638,9 @@ export class Canvas2DGraphics {
       resolved != undefined,
       `A value for ${resolved} could not be resolved.`
     );
+    if (param === 'roughness') {
+      return clamp(resolved as number, 0, 1) as NonNullable<DrawingOptions[T]>;
+    }
     return resolved as NonNullable<DrawingOptions[T]>;
   }
 

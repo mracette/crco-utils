@@ -9,13 +9,12 @@ import { drawPolygon } from './draw/polygon';
 import { drawSquare } from './draw/square';
 import { drawStar } from './draw/star';
 import { drawText } from './draw/text';
+import { init as responsiveInit } from './responsive';
 import {
   Canvas2DGraphics,
   Canvas2DGraphicsOptions,
   CanvasCoordinates,
-  mulberry32,
-  TAU,
-  Vector2
+  mulberry32
 } from '../src';
 
 const OPTIONS: Canvas2DGraphicsOptions = {
@@ -144,4 +143,5 @@ export const init = () => {
   });
 };
 
-init();
+// init();
+responsiveInit();

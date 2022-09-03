@@ -1,4 +1,5 @@
 import { distance } from './distance';
+import { magnitude } from './magnitude';
 
 export class Vector2 {
   constructor(public x: number, public y: number) {}
@@ -8,7 +9,7 @@ export class Vector2 {
   }
 
   get magnitude(): number {
-    return (this.x ** 2 + this.y ** 2) ** 0.5;
+    return magnitude(this.x, this.y);
   }
 
   add(x: number, y: number): Vector2;

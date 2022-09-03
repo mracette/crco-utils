@@ -168,8 +168,8 @@ export class CanvasCoordinates {
    * @param width - A width value in canvas units
    * @returns The equivalent width in normal units
    */
-  nWidth(width: number): number {
-    return this.xn(width) - this.xn(0);
+  nWidth(width?: number): number {
+    return this.xn(width ?? this.width()) - this.xn(0);
   }
 
   /**
@@ -177,7 +177,7 @@ export class CanvasCoordinates {
    * @param height - A height value in canvas units
    * @returns The equivalent height in normal units
    */
-  nHeight(height: number): number {
-    return this.yn(height) - this.yn(0);
+  nHeight(height?: number): number {
+    return this.yn(height ?? this.height()) - this.yn(0);
   }
 }

@@ -1,4 +1,4 @@
-import { DPR, Vector2 } from '..';
+import { Vector2 } from '..';
 
 export type AspectRatio = Vector2;
 
@@ -23,8 +23,9 @@ export const aspectRatioResize = (
       // as it has side effects for canvas elements
       if (newWidth !== currentWidth || newHeight !== currentHeight) {
         if (element instanceof HTMLCanvasElement) {
-          element.width = newWidth * DPR;
-          element.height = newHeight * DPR;
+          const dpr = window?.devicePixelRatio || 1;
+          element.width = newWidth * dpr;
+          element.height = newHeight * dpr;
         }
         element.style.width = newWidth + 'px';
         element.style.height = newHeight + 'px';

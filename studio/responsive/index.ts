@@ -1,6 +1,7 @@
 import {
   Canvas2DGraphics,
   CanvasCoordinates,
+  DPR,
   magnitude,
   mulberry32,
   random
@@ -68,8 +69,8 @@ export const init = () => {
     });
     const observer = new ResizeObserver(() => {
       graphics.options.random = getRandom();
-      canvas.height = canvas.clientHeight * window.devicePixelRatio;
-      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight * DPR;
+      canvas.width = canvas.clientWidth * DPR;
       drawFunction(graphics);
     });
     observer.observe(canvas);

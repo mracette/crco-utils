@@ -1,17 +1,6 @@
-import {
-  Canvas2DGraphics,
-  CanvasCoordinates,
-  DPR,
-  magnitude,
-  mulberry32,
-  random
-} from '../../src';
+import { Canvas2DGraphics, CanvasCoordinates, mulberry32 } from '../../src';
 import { Canvas2DGraphicsOptions } from '../../src';
-import {
-  drawResponsiveCircles,
-  drawResponsiveLines,
-  drawResponsiveText
-} from '../draw/responsive';
+import { drawResponsiveText } from '../draw/responsive';
 import { drawSquare } from '../draw/square';
 
 const OPTIONS: Canvas2DGraphicsOptions = {
@@ -69,8 +58,8 @@ export const init = () => {
     });
     const observer = new ResizeObserver(() => {
       graphics.options.random = getRandom();
-      canvas.height = canvas.clientHeight * DPR;
-      canvas.width = canvas.clientWidth * DPR;
+      canvas.height = canvas.clientHeight * window?.devicePixelRatio || 1;
+      canvas.width = canvas.clientWidth * window?.devicePixelRatio || 1;
       drawFunction(graphics);
     });
     observer.observe(canvas);

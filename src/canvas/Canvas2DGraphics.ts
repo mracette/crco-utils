@@ -10,7 +10,6 @@ import {
   star,
   TAU
 } from '..';
-import { DPR } from '../js/constants';
 import { Vector2 } from '../math/Vector2';
 
 export enum CanvasDimensions {
@@ -593,12 +592,11 @@ export class Canvas2DGraphics {
    * when beginPath() is not called properly before each path? Or is there another reason?
    *
    */
-  public clearCanvasAndState(
-    canvas: HTMLCanvasElement,
-    options: { dpr?: boolean } = {}
-  ): void {
-    canvas.width = canvas.clientWidth * (options.dpr ? DPR : 1);
-    canvas.height = canvas.clientHeight * (options.dpr ? DPR : 1);
+  public clearCanvasAndState(canvas: HTMLCanvasElement): void {
+    const oldWidth = canvas.width;
+    const oldHeight = canvas.height;
+    canvas.width = oldWidth;
+    canvas.height = oldHeight;
   }
 
   protected resolveX(value: number, options: DrawingOptions = {}) {

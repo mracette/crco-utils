@@ -1,17 +1,13 @@
-import { Vector2 } from '..';
-
-export type AspectRatio = Vector2;
-
 export const aspectRatioResize = (
   element: HTMLElement,
-  aspect: AspectRatio
+  aspect: [number, number]
 ): ResizeObserver | null => {
   if (!element.parentElement) {
     console.warn('aspectRatioResize: element has no parent and cannot be resized');
     return null;
   } else {
     const parent = element.parentElement;
-    const { x, y } = aspect;
+    const [x, y] = aspect;
     const resizeToAspectRatio = () => {
       const { width, height } = parent.getBoundingClientRect();
       const resizeRatio = Math.min(width / x, height / y);
@@ -19,7 +15,7 @@ export const aspectRatioResize = (
       const currentHeight = element.clientHeight;
       const newWidth = Math.round(resizeRatio * x);
       const newHeight = Math.round(resizeRatio * y);
-      // do not resize if the new size is the same as the current size
+      // Do not resize if the new size is the same as the current size
       // as it has side effects for canvas elements
       if (newWidth !== currentWidth || newHeight !== currentHeight) {
         if (element instanceof HTMLCanvasElement) {

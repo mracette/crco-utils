@@ -6,7 +6,7 @@ declare global {
   }
 }
 
-type CreateAudioBufferSourceNodeOptions = Partial<{
+export type CreateAudioBufferSourceNodeOptions = Partial<{
   /** @defaultValue audioBuffer length */
   renderLength: number;
   /** @defaultValue false */

@@ -44,59 +44,63 @@ export const createAudioBufferSourceNode = async (
           const bufferLength = options.renderLength || audioBuffer.length;
           const bufferDuration = bufferLength / audioBuffer.sampleRate;
 
-          const offline = new (window.OfflineAudioContext ||
+          const offlineCtx = new (window.OfflineAudioContext ||
             window.webkitOfflineAudioContext)(2, bufferLength, audioBuffer.sampleRate);
 
-          offline.oncomplete = (event) => {
+          offlineCtx.oncomplete = (event) => {
             const { renderedBuffer } = event;
             const audioPlayer = audioCtx.createBufferSource();
             audioPlayer.buffer = renderedBuffer;
             resolve(audioPlayer);
           };
 
-          const gainNode = offline.createGain();
+          const gainNode = offlineCtx.createGain();
 
-          const offlineBuffer = offline.createBufferSource();
-          offlineBuffer.loop = loop;
-          offlineBuffer.buffer = audioBuffer;
-          offlineBuffer.connect(gainNode);
-          gainNode.connect(offline.destination);
+          const offlineBufferSource = offlineCtx.createBufferSource();
+          offlineBufferSource.loop = loop;
+          offlineBufferSource.loopStart = 0;
+          offlineBufferSource.loopEnd = audioBuffer.duration;
+          offlineBufferSource.buffer = audioBuffer;
+          offlineBufferSource.connect(gainNode);
+          gainNode.connect(offlineCtx.destination);
 
           if (fadeLength > 0) {
-            gainNode.gain.setValueAtTime(MIN_VOLUME, offline.currentTime);
+            gainNode.gain.setValueAtTime(MIN_VOLUME, offlineCtx.currentTime);
             gainNode.gain.setValueAtTime(
               MAX_VOLUME,
-              offline.currentTime + bufferDuration - fadeLength
+              offlineCtx.currentTime + bufferDuration - fadeLength
             );
 
             if (fadeType === 'exponential') {
               gainNode.gain.exponentialRampToValueAtTime(
                 MAX_VOLUME,
-                offline.currentTime + fadeLength
+                offlineCtx.currentTime + fadeLength
               );
               gainNode.gain.exponentialRampToValueAtTime(
                 MIN_VOLUME,
-                offline.currentTime + bufferDuration
+                offlineCtx.currentTime + bufferDuration
               );
             } else if (fadeType === 'linear') {
               gainNode.gain.linearRampToValueAtTime(
                 MAX_VOLUME,
-                offline.currentTime + fadeLength
+                offlineCtx.currentTime + fadeLength
               );
               gainNode.gain.linearRampToValueAtTime(
                 MIN_VOLUME,
-                offline.currentTime + bufferDuration
+                offlineCtx.currentTime + bufferDuration
               );
             }
           }
 
-          offlineBuffer.start();
-          offline.startRendering();
+          offlineBufferSource.start();
+          offlineCtx.startRendering();
         } else {
-          const audioPlayer = audioCtx.createBufferSource();
-          audioPlayer.buffer = audioBuffer;
-          audioPlayer.loop = loop;
-          resolve(audioPlayer);
+          const bufferSource = audioCtx.createBufferSource();
+          bufferSource.buffer = audioBuffer;
+          bufferSource.loop = loop;
+          bufferSource.loopStart = 0;
+          bufferSource.loopEnd = audioBuffer.duration;
+          resolve(bufferSource);
         }
       },
       (error) => reject(error)

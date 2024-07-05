@@ -31,7 +31,7 @@ export const createAudioBufferSourceNode = async (
   const fadeLength = options.fadeLength || 0;
   const fadeType = options.fadeType || 'exponential';
   const offlineRendering = options.offlineRendering || false;
-  const loop = options.loop || true;
+  const loop = options.loop || false;
 
   const response = await fetch(audioFilePath);
   const arrayBuffer = await response.arrayBuffer();

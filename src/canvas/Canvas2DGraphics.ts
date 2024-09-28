@@ -1,7 +1,6 @@
 import {
   CanvasCoordinates,
   clamp,
-  deepClone,
   isUndefined,
   lerp,
   magnitude,
@@ -17,13 +16,13 @@ export enum CanvasDimensions {
   Height = 'height'
 }
 
-type ReactiveStyleFunction<T> = (coords: CanvasCoordinates) => T;
+export type ReactiveStyleFunction<T> = (coords: CanvasCoordinates) => T;
 
 type ValueOrReactiveStyleFunction<T> = T | ReactiveStyleFunction<T>;
 
-type RotationWithOrigin = { rotation: number; origin: Vector2 };
+export type RotationWithOrigin = { rotation: number; origin: Vector2 };
 
-type ScaleWithOrigin = {
+export type ScaleWithOrigin = {
   scale: Vector2;
   origin: Vector2;
   constantLineWidth?: boolean;
@@ -39,6 +38,10 @@ export type Canvas2DStyleValues = {
   lineJoin: CanvasRenderingContext2D['lineJoin'];
   lineDashOffset: CanvasRenderingContext2D['lineDashOffset'];
   miterLimit: CanvasRenderingContext2D['miterLimit'];
+  shadowColor: CanvasRenderingContext2D['shadowColor'];
+  shadowBlur: CanvasRenderingContext2D['shadowBlur'];
+  shadowOffsetX: CanvasRenderingContext2D['shadowOffsetX'];
+  shadowOffsetY: CanvasRenderingContext2D['shadowOffsetY'];
   strokeStyle: CanvasRenderingContext2D['strokeStyle'];
   textAlign: CanvasRenderingContext2D['textAlign'];
   textBaseline: CanvasRenderingContext2D['textBaseline'];
@@ -154,22 +157,22 @@ export class Canvas2DGraphics {
     };
   }
 
-  public rect(x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}) {
+  public rect = (x = 0, y = 0, width = 1, height = 1, options: DrawingOptions = {}) => {
     const roughness = this.resolveOptions('roughness', options);
     if (roughness) {
       this.rectRough(x, y, width, height, options);
     } else {
       this.rectSmooth(x, y, width, height, options);
     }
-  }
+  };
 
-  private rectRough(
+  private rectRough = (
     x: number,
     y: number,
     width: number,
     height: number,
     options: DrawingOptions
-  ) {
+  ) => {
     const xAdj = this.resolveX(x);
     const yAdj = this.resolveY(y);
     const widthAdj = this.resolveWidth(width);
@@ -187,15 +190,15 @@ export class Canvas2DGraphics {
       saveAndRestore: true,
       closeLoop: true
     });
-  }
+  };
 
-  private rectSmooth(
+  private rectSmooth = (
     x: number,
     y: number,
     width: number,
     height: number,
     options: DrawingOptions
-  ): void {
+  ): void => {
     this.preDrawOps(options);
     this.context.rect(
       this.resolveX(x, options),
@@ -204,18 +207,18 @@ export class Canvas2DGraphics {
       this.resolveHeight(height)
     );
     this.postDrawOps(options);
-  }
+  };
 
-  public lineSegments(points: number[][], options: DrawingOptions = {}) {
+  public lineSegments = (points: number[][], options: DrawingOptions = {}) => {
     const roughness = this.resolveOptions('roughness', options);
     if (roughness) {
       this.lineSegmentsRough(points, options);
     } else {
       this.lineSegmentsSmooth(points, options);
     }
-  }
+  };
 
-  private lineSegmentsSmooth(points: number[][], options: DrawingOptions): void {
+  private lineSegmentsSmooth = (points: number[][], options: DrawingOptions): void => {
     this.preDrawOps(options);
     for (let i = 0; i < points.length; i++) {
       const x = this.resolveX(points[i][0], options);
@@ -227,9 +230,9 @@ export class Canvas2DGraphics {
       }
     }
     this.postDrawOps(options);
-  }
+  };
 
-  private lineSegmentsRough(points: number[][], options: DrawingOptions) {
+  private lineSegmentsRough = (points: number[][], options: DrawingOptions) => {
     const roughness = this.resolveOptions('roughness', options);
     const random = this.resolveOptions('random', options);
     const numSegments = points.length - 1;
@@ -292,12 +295,15 @@ export class Canvas2DGraphics {
         j === 0 ? options : { ...options, fill: false };
       this.curveThroughPoints(roughPoints, optionsAdjusted);
     }
-  }
+  };
 
   /**
    * @see {@link https://stackoverflow.com/a/7058606/3064334}
    */
-  public curveThroughPoints(points: number[][], options: DrawingOptions = {}): void {
+  public curveThroughPoints = (
+    points: number[][],
+    options: DrawingOptions = {}
+  ): void => {
     this.preDrawOps(options);
     for (let i = 0; i < points.length - 1; i++) {
       const x = this.resolveX(points[i][0], options);
@@ -323,23 +329,28 @@ export class Canvas2DGraphics {
       );
     });
     this.postDrawOps(options);
-  }
+  };
 
-  public circle(cx: number, cy: number, r: number, options: DrawingOptions = {}) {
+  public circle = (cx: number, cy: number, r: number, options: DrawingOptions = {}) => {
     const roughness = this.resolveOptions('roughness', options);
     if (roughness) {
       this.circleRough(cx, cy, r, options);
     } else {
       this.circleSmooth(cx, cy, r, options);
     }
-  }
+  };
 
   /**
    * @defaultValue options.beginPath = true
    * @defaultValue options.saveAndRestore = true
    * @defaultValue options.fill = true
    */
-  private circleSmooth(cx: number, cy: number, r: number, options: DrawingOptions): void {
+  private circleSmooth = (
+    cx: number,
+    cy: number,
+    r: number,
+    options: DrawingOptions
+  ): void => {
     this.preDrawOps(options);
     this.context.arc(
       this.resolveX(cx, options),
@@ -349,9 +360,9 @@ export class Canvas2DGraphics {
       TAU
     );
     this.postDrawOps(options);
-  }
+  };
 
-  private circleRough(cx: number, cy: number, r: number, options: DrawingOptions) {
+  private circleRough = (cx: number, cy: number, r: number, options: DrawingOptions) => {
     const roughness = this.resolveOptions('roughness', options);
     const random = this.resolveOptions('random', options);
     const segmentCount = 16;
@@ -384,27 +395,27 @@ export class Canvas2DGraphics {
         closeLoop: true // ensures shape can be filled
       });
     }
-  }
+  };
 
-  public drawImage(
+  public drawImage = (
     image: CanvasImageSource,
     x: number,
     y: number,
     options: DrawingOptions = {}
-  ): void {
+  ): void => {
     this.preDrawOps(options);
     this.context.drawImage(image, this.resolveX(x, options), this.resolveY(y, options));
     this.postDrawOps(options);
-  }
+  };
 
-  public star(
+  public star = (
     cx: number,
     cy: number,
     size: number,
     numPoints?: number,
     inset?: number,
     options: DrawingOptions = {}
-  ) {
+  ) => {
     this.lineSegments(
       star(
         this.resolveX(cx, options),
@@ -419,15 +430,15 @@ export class Canvas2DGraphics {
         saveAndRestore: true
       }
     );
-  }
+  };
 
-  public polygon(
+  public polygon = (
     cx: number,
     cy: number,
     size: number,
     numPoints?: number,
     options: DrawingOptions = {}
-  ) {
+  ) => {
     const roughness = this.resolveOptions('roughness', options);
     this.lineSegments(
       polygon(
@@ -443,32 +454,32 @@ export class Canvas2DGraphics {
         closeLoop: Boolean(roughness)
       }
     );
-  }
+  };
 
-  public applyStyles(styles?: Canvas2DStyles): void {
+  public applyStyles = (styles?: Canvas2DStyles): void => {
     // not sure about this...
     // this.assignStylesToContext(this.options.styles!);
     // if (styles) {
     //   this.assignStylesToContext(styles);
     // }
     this.assignStylesToContext({ ...this.options.styles, ...styles });
-  }
+  };
 
-  public text(text: string, cx: number, cy: number, options: DrawingOptions = {}) {
+  public text = (text: string, cx: number, cy: number, options: DrawingOptions = {}) => {
     const roughness = this.resolveOptions('roughness', options);
     if (roughness) {
       this.textRough(text, cx, cy, options);
     } else {
       this.textSmooth(text, cx, cy, options);
     }
-  }
+  };
 
-  private textSmooth(
+  private textSmooth = (
     text: string,
     cx: number,
     cy: number,
     options: DrawingOptions = {}
-  ): void {
+  ): void => {
     this.preDrawOps(options);
     const maxWidth = this.resolveOptions('maxTextWidth', options);
     this.context.fillText(
@@ -478,9 +489,14 @@ export class Canvas2DGraphics {
       maxWidth > 0 ? maxWidth : undefined
     );
     this.postDrawOps(options);
-  }
+  };
 
-  private textRough(text: string, cx: number, cy: number, options: DrawingOptions = {}) {
+  private textRough = (
+    text: string,
+    cx: number,
+    cy: number,
+    options: DrawingOptions = {}
+  ) => {
     const roughness = this.resolveOptions('roughness', options);
     const resolvedRandom = this.resolveOptions('random', options);
 
@@ -570,11 +586,11 @@ export class Canvas2DGraphics {
         saveAndRestore: true
       });
     });
-  }
+  };
 
-  public clear(): void {
+  public clear = (): void => {
     this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-  }
+  };
 
   /**
    * An alternative to context.clearRect() that can be run at the beginning of a draw loop.
@@ -592,32 +608,33 @@ export class Canvas2DGraphics {
    * when beginPath() is not called properly before each path? Or is there another reason?
    *
    */
-  public clearCanvasAndState(canvas: HTMLCanvasElement): void {
+  public clearCanvasAndState = (): void => {
+    const canvas = this.context.canvas;
     const oldWidth = canvas.width;
     const oldHeight = canvas.height;
     canvas.width = oldWidth;
     canvas.height = oldHeight;
-  }
+  };
 
-  protected resolveX(value: number, options: DrawingOptions = {}) {
+  protected resolveX = (value: number, options: DrawingOptions = {}) => {
     const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.nx(value) : value;
-  }
+  };
 
-  protected resolveY(value: number, options: DrawingOptions = {}) {
+  protected resolveY = (value: number, options: DrawingOptions = {}) => {
     const useNormalCoordinates = this.resolveOptions('useNormalCoordinates', options);
     return useNormalCoordinates ? this.coords.ny(value) : value;
-  }
+  };
 
-  protected resolveWidth(value: number) {
+  protected resolveWidth = (value: number) => {
     return this.coords.width(value);
-  }
+  };
 
-  protected resolveHeight(value: number) {
+  protected resolveHeight = (value: number) => {
     return this.coords.height(value);
-  }
+  };
 
-  protected resolveScalar(value: number, options: DrawingOptions = {}) {
+  protected resolveScalar = (value: number, options: DrawingOptions = {}) => {
     const scalarNormalization = this.resolveOptions('scalarNormalization', options);
     if (scalarNormalization === 'width') {
       return this.coords.width(value);
@@ -626,12 +643,12 @@ export class Canvas2DGraphics {
       return this.coords.height(value);
     }
     return value;
-  }
+  };
 
-  protected resolveOptions<T extends keyof DrawingOptions>(
+  protected resolveOptions = <T extends keyof DrawingOptions>(
     param: T,
     options: DrawingOptions
-  ): NonNullable<DrawingOptions[T]> {
+  ): NonNullable<DrawingOptions[T]> => {
     const resolved = options && param in options ? options[param] : this.options[param];
     // eslint-disable-next-line no-console
     console.assert(
@@ -642,12 +659,12 @@ export class Canvas2DGraphics {
       return clamp(resolved as number, 0, 1) as NonNullable<DrawingOptions[T]>;
     }
     return resolved as NonNullable<DrawingOptions[T]>;
-  }
+  };
 
-  protected resolveStyles<T extends keyof Canvas2DStyles>(
+  protected resolveStyles = <T extends keyof Canvas2DStyles>(
     param: T,
     styles?: Canvas2DStyles
-  ): Canvas2DStyleValues[T] {
+  ): Canvas2DStyleValues[T] => {
     const resolved =
       styles && param in styles ? styles[param] : this.options.styles![param];
     if (typeof resolved === 'function') {
@@ -655,7 +672,7 @@ export class Canvas2DGraphics {
     } else {
       return resolved as Canvas2DStyleValues[T];
     }
-  }
+  };
 
   /**
    * Creates a CSS style string for 'font' using a combination of related fields.
@@ -664,7 +681,9 @@ export class Canvas2DGraphics {
    * font style to be changed without needing to keep track of the entire font
    * string
    */
-  protected constructFontString(styles: Canvas2DStyles): CSSStyleDeclaration['font'] {
+  protected constructFontString = (
+    styles: Canvas2DStyles
+  ): CSSStyleDeclaration['font'] => {
     const fontSize = this.resolveStyles('fontSize', styles);
     const lineHeight = this.resolveStyles('lineHeight', styles);
     const fontStyle = this.resolveStyles('fontStyle', styles);
@@ -682,9 +701,9 @@ export class Canvas2DGraphics {
       .trim();
 
     return fontString;
-  }
+  };
 
-  protected assignStylesToContext(styles: Canvas2DStyles) {
+  protected assignStylesToContext = (styles: Canvas2DStyles) => {
     for (const key in styles) {
       const resolvedStyle = this.resolveStyles(key as keyof Canvas2DStyles, styles);
       if (isUndefined(resolvedStyle)) {
@@ -743,9 +762,9 @@ export class Canvas2DGraphics {
       }
     }
     this.context.font = this.constructFontString(styles);
-  }
+  };
 
-  protected preDrawOps(options: DrawingOptions = {}) {
+  protected preDrawOps = (options: DrawingOptions = {}) => {
     if (this.resolveOptions('saveAndRestore', options)) {
       this.context.save();
     }
@@ -755,9 +774,9 @@ export class Canvas2DGraphics {
     if (this.resolveOptions('beginPath', options)) {
       this.context.beginPath();
     }
-  }
+  };
 
-  protected postDrawOps(options: DrawingOptions) {
+  protected postDrawOps = (options: DrawingOptions) => {
     if (this.resolveOptions('closePath', options)) {
       this.context.closePath();
     }
@@ -770,14 +789,14 @@ export class Canvas2DGraphics {
     if (this.resolveOptions('saveAndRestore', options)) {
       this.context.restore();
     }
-  }
+  };
 
-  private measureTextInContext(text: string, styles?: Canvas2DStyles) {
+  private measureTextInContext = (text: string, styles?: Canvas2DStyles) => {
     this.context.save();
     // apply the current styles to ensure that text measurement is accurate
     this.applyStyles(styles);
     const measurement = this.context.measureText(text);
     this.context.restore();
     return measurement;
-  }
+  };
 }
